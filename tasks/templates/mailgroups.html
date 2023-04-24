@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+<main class="container py-5">
+    <div class="col-md-6 offset-md-3">
+        <h1 class="display-1 text-center"> MAIL GROUPS </h1>     
+    
+      <ul class="list-group">
+        {% for mailgroups in mailgroups %}
+        <a class="list-group-item" href="{% url 'mailgroup_detail' mailgroups.id %}">
+          <header class="d-flex justify-content-between">
+            <h2 class="fw-bold text-primary">{{mailgroups.groupname}}</h2>
+            <p>{{mailgroups.description}}</p>
+          </header>
+        </a>
+        {% endfor %}
+      </ul>
+    </div>
+</main>
+
+{% endblock %}

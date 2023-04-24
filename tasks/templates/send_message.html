@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<main class="container">
+    <div>
+        <h1>Enviar mensaje de WhatsApp</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="to">Número de teléfono:</label>
+            <input type="text" name="to" required>
+            <br>
+            <label for="body">Mensaje:</label>
+            <textarea name="body" required></textarea>
+            <br>
+            <button type="submit">Enviar mensaje</button>
+        </form>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,73 @@
+from django.forms import ModelForm
+from django import forms
+from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup
+from bootstrap_datepicker_plus.widgets import DateTimePickerInput
+
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['tittle', 'message', 'dateprogramed', 'important']
+        widgets = {
+            'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
+            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
+            'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
+            'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
+        }
+
+class MailForm(forms.ModelForm):
+    class Meta:
+        model = Mail
+        fields = ['tittle', 'message', 'subject', 'adress', 'dateprogramed', 'important']
+        widgets = {
+            'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
+            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
+            'subject' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your subject'}), 
+            'adress' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver email adress'}),
+            'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
+            'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
+        }
+
+class PhoneForm(forms.ModelForm):
+    class Meta:
+        model = Phone
+        fields = ['tittle', 'message', 'subject', 'adress', 'dateprogramed', 'important']
+        widgets = {
+            'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
+            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
+            'subject' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your subject'}), 
+            'adress' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver email adress'}),
+            'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
+            'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
+        }
+
+class WhatsappGroupForm(forms.ModelForm):
+    class Meta:
+        model = WhatsappGroup
+        fields = ['groupname', 'description', 'members']
+        widgets = {
+            'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the group name'}),
+            'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group description'}),
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group members separated by ";"'})       
+        }
+
+class MailGroupForm(forms.ModelForm):
+    class Meta:
+        model = MailGroup
+        fields = ['groupname', 'description', 'members']
+        widgets = {
+            'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the group name'}),
+            'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group description'}),
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group members separated by ";"'})       
+        }
+
+class PhoneGroupForm(forms.ModelForm):
+    class Meta:
+        model = PhoneGroup
+        fields = ['groupname', 'description', 'members']
+        widgets = {
+            'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the group name'}),
+            'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group description'}),
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write the group members separated by ";"'})       
+        }
+

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <main class="container">
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <div class="card card-body mt-3">
+          <h4 class="text-center display-7 py-5 text-dark">Programed whatsapp's notifications</h4>    
+          <ul class="list-group">
+              {% for task in tasks %}
+              <a class="list-group-item" href="{% url 'task_detail' task.id %}">
+                <header class="d-flex justify-content-between">
+                  {% if task.important %}
+                  <h5 class="fw-bold text-success display-9">{{task.tittle}}</h5>
+                  {% else %} 
+                  <h5 class="fw-bold text-success display-9">{{task.tittle}}</h5>
+                  {% endif %}
+                  <p>{{task.message}}</p>
+                </header>
+              </a>
+              {% endfor %}
+            </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+{% endblock %} 
+

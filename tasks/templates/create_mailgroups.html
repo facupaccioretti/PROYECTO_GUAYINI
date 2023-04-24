@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<main>
+    <div class="row" >
+        <div class="col-md-4 offset-md-4 mt-3 mb-3">
+            <form action="/create_mailgroups/" method="POST" class="card card-body">
+                <h5>Add mail groups</h5>   
+                {% csrf_token %}
+                {{mailform}}
+                <br>
+                <button class="btn btn-primary">
+                    Submit
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

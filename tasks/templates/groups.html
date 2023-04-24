@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<main class="container py-5">
+    <section class="col-md-9 mx-auto">
+        <section class= "card card-body text-center">
+            <nav class="mx-auto">
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <button class="nav-link active" id="whatsappgroups-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Whatsapp groups</button>
+                <button class="nav-link" id="mailgroups-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Mail groups</button>
+                <button class="nav-link" id="phonegroups-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Phone groups</button>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <h5 class="text-dark">Grupo:</h5>
+                <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                    <ul class="list-group">
+                        {% for whatsappgroups in whatsappgroups %}
+                        <a class="list-group-item" href="{% url 'whatsappgroup_detail' whatsappgroups.id %}">
+                        <header class="d-flex justify-content-between">
+                            <h5 class=" text-dark">{{whatsappgroups.groupname}}</h5>
+                            <p>{{whatsappgroups.description}}</p>
+                        </header>
+                        </a>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                    <ul class="list-group">
+                        {% for mailgroups in mailgroups %}
+                        <a class="list-group-item" href="{% url 'mailgroup_detail' mailgroups.id %}">
+                          <header class="d-flex justify-content-between">
+                            <h5 class="text-dark">{{mailgroups.groupname}}</h5>
+                            <p>{{mailgroups.description}}</p>
+                          </header>
+                        </a>
+                        {% endfor %}
+                      </ul>
+                </div>
+                <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                    <ul class="list-group">
+                        {% for phonegroups in phonegroups %}
+                        <a class="list-group-item" href="{% url 'phonegroup_detail' phonegroups.id %}">
+                          <header class="d-flex justify-content-between">
+                            <h5 class="text-dark">{{phonegroups.groupname}}</h5>
+                            <p>{{phonegroups.description}}</p>
+                          </header>
+                        </a>
+                        {% endfor %}
+                      </ul>
+                </div>
+            </div>
+        </section>
+    </section>
+</main>
+
+{% endblock %}
