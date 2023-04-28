@@ -21,6 +21,8 @@ from django.http import JsonResponse
 from twilio.rest import Client
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
+
 
 
 
@@ -71,6 +73,7 @@ def signup(request):
                     'error': 'Password do not match'
                 })
 
+@csrf_protect
 def signin(request):
     if request.method == 'GET':
         return render(request, 'signin.html',{
