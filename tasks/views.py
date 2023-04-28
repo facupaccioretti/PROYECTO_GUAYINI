@@ -479,6 +479,8 @@ def success(request):
 def send_scheduled_messages(request):
     # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
     tz = pytz.timezone("America/Argentina/Cordoba")
+    
+    print("ejecutando cronjob")
 
     # Obtener la fecha y hora actual en la zona horaria deseada
     now = timezone.now().astimezone(tz)

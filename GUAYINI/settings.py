@@ -140,12 +140,12 @@ LOGIN_URL = '/signin'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 TWILIO_ACCOUNT_SID = 'ACbf4a36af7fd22a108ea2b6f90eddf472'
-TWILIO_AUTH_TOKEN = '2fcc1ce9a111ef65a34c18cad1ae1c94'
+TWILIO_AUTH_TOKEN = '02ed70a65c291555d65e29087b5ec770'
 TWILIO_ACCOUNT_SID_PRUEBA = 'AC46f6825baf82b2cfc8052caf8a220fd8'
 TWILIO_AUTH_TOKEN_PRUEBA = '899671c0580d3806006063ede7de6b05'
 TWILIO_WHATSAPP_NUMBER = '+14155238886'
 
 # CRON JOBS
 CRONJOBS = [
-    ('*/1 * * * *', 'tasks.views.send_scheduled_messages', '> /dev/null 2>&1')
+    ('*/1 * * * *', 'tasks.views.send_scheduled_messages')
 ]
