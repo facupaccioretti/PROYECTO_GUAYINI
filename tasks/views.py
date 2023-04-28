@@ -477,22 +477,37 @@ def success(request):
 
 @login_required
 def send_scheduled_messages(request):
+    # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
+    tz = pytz.timezone("America/Argentina/Cordoba")
+
+    # Obtener la fecha y hora actual en la zona horaria deseada
+    now = timezone.now().astimezone(tz)
+
     # Obtiene todas las tareas programadas que aún no se han completado
     tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
+
+    # Verifica las fechas y horas programadas y las fechas y horas actuales
+    for task in tasks:
+        task_date = task.dateprogramed.astimezone(tz)
+        print(f"Fecha y hora programada: {task_date}, Fecha y hora actual: {now}")
 
     # Envía los mensajes de WhatsApp
     for task in tasks:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body=task.message,
-            from_='whatsapp:' + settings.TWILIO_WHATSAPP_NUMBER,
-            to=f'whatsapp:+5493515927657' # PROXIMAMENTE: {request.user.profile.phone_number}'
-        )
+        print(f"Enviando mensaje a: {task.to}")
+        numbers = task.to.split(",")  # separar los números por coma
+        for number in numbers:
+            message = client.messages.create(
+                body=task.message,
+                from_='whatsapp:' + settings.TWILIO_WHATSAPP_NUMBER,
+                to=f'whatsapp:' + number.strip()  # eliminar espacios en blanco en el número
+            )
         # Marca la tarea como completada
         task.datecompleted = timezone.now()
         task.save()
 
     return redirect('tasks')
+
 
 
 

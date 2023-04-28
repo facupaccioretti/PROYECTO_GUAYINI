@@ -7,10 +7,11 @@ from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['tittle', 'message', 'dateprogramed', 'important']
+        fields = ['tittle', 'message', 'to', 'dateprogramed', 'important']
         widgets = {
             'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
-            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
+            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your message'}),
+            'to': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your contact'}),
             'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
             'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
         }
