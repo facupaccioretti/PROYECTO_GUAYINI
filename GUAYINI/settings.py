@@ -148,5 +148,5 @@ TWILIO_WHATSAPP_NUMBER = '+14155238886'
 # CRON JOBS
 CRONJOBS = [
     ('*/1 * * * *', 'tasks.views.send_scheduled_messages'),
-    ('*/1 * * * *', 'tasks.views.prueba_cronjob')
+    ('*/1 * * * *', 'tasks.views.send_scheduled_messages_cronjob')
 ]

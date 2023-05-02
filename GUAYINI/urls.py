@@ -72,7 +72,7 @@ urlpatterns = [
     path('success_message/', views.success, name='success'),
     path('send_scheduled_messages/', views.send_scheduled_messages, name='send_scheduled_messages'),
     path('enviar_mensaje_curl/', views.enviar_mensaje_curl, name='enviar_mensaje'),
-    path('prueba_cronjob/', views.prueba_cronjob, name='prueba_cronjob')
+    path('send_scheduled_messages_cronjob/', views.send_scheduled_messages_cronjob, name='send_scheduled_messages_cronjob')
 
 ]
 
