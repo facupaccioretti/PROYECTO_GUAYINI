@@ -19,7 +19,6 @@ from twilio.rest import Client
 from django.conf import settings
 from django.http import JsonResponse
 from twilio.rest import Client
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 
@@ -512,22 +511,21 @@ def send_scheduled_messages(request):
 
 
 @csrf_exempt
-def enviar_mensaje(request):
+def enviar_mensaje_curl(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje')
-        numero = request.POST.get('numero')
+        numero = request.POST.get('numero') or request.FILES.get('numero')
 
-        # Aquí debes agregar el código para enviar el mensaje a través de Twilio
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        if numero is None:
+            return JsonResponse({'mensaje': 'Numero de telefono faltante'}, status=400)
         message = client.messages.create(
             body=mensaje,
             from_='whatsapp:+14155238886',
-            to=f'whatsapp:+5493515927657'
+            to=f'whatsapp:' + numero
         )
 
         return JsonResponse({'mensaje': 'Mensaje enviado exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
     
-
-##### MENSAJES QUE SE MANDAN ANTES CUANDO CORREMOS EL CODIGO!!! #####

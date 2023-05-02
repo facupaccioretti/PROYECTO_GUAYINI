@@ -71,7 +71,7 @@ urlpatterns = [
     path('send_message/', views.send_whatsapp_message, name='whatsapp_message'),
     path('success_message/', views.success, name='success'),
     path('send_scheduled_messages/', views.send_scheduled_messages, name='send_scheduled_messages'),
-    path('enviar-mensaje/', views.enviar_mensaje, name='enviar_mensaje')
+    path('enviar_mensaje_curl/', views.enviar_mensaje_curl, name='enviar_mensaje')
 
 ]
 
