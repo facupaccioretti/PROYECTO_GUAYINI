@@ -509,7 +509,9 @@ def send_scheduled_messages(request):
 
     return redirect('tasks')
 
-
+def prueba_cronjob(request=None):
+    print(f"cronjob de prueba ejecutandose")
+    return(f"CRONJOB DE PRUEBA FINALIZADO")
 
 
 @csrf_exempt
