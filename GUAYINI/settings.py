@@ -146,6 +146,5 @@ TWILIO_AUTH_TOKEN_PRUEBA = '899671c0580d3806006063ede7de6b05'
 TWILIO_WHATSAPP_NUMBER = '+14155238886'
 
 # CRON JOBS
-CRONJOBS = [
-    ('*/1 * * * *', 'tasks.cron.cronjob_prueba')
-]
+CRONJOBS = [    ('* * * * *', 'tasks.cron.test_cron_job')]
+
