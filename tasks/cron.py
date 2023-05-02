@@ -1,2 +1,3 @@
 def cronjob_prueba():
-    return(print(f"CRONJOB DE PRUEBA EJECUTADO"))
+    print(f"CRONJOB DE PRUEBA EJECUTADO")
+    pass
