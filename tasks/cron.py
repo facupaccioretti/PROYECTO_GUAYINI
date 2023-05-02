@@ -1,5 +1,5 @@
-from .models import TestCronjob
+from .models import Test
 
 def test_cron_job():
-    TestCronjob.objects.create(name='test')
+    Test.objects.create(name='test')
 
