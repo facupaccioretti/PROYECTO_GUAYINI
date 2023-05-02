@@ -1,3 +1,5 @@
+from .models import TestCronjob
+
 def test_cron_job():
-    print("Django Crontab funciona!")
+    TestCronjob.objects.create(name='test')
 

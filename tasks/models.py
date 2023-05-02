@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 
 #Notification Models:
 
+class TestCronjob(models.Model):
+    name = models.CharField(max_length=100)
+
 class Task(models.Model):
     tittle = models.CharField(max_length=100)
     message = models.TextField(blank=True)
