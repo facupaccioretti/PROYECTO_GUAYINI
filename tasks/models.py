@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
@@ -13,6 +14,7 @@ class Task(models.Model):
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
     to = models.TextField(blank=True)
+    groups = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

@@ -461,7 +461,7 @@ def send_whatsapp_message(request):
         body = request.POST.get('body')
         
         message = client.messages.create(
-            from_='whatsapp:' + settings.TWILIO_WHATSAPP_NUMBER,
+            from_='whatsapp:' + settings.TWILIO_COETEC_NUMBER,
             body=body,
             to='whatsapp:' + to
         )
@@ -486,7 +486,7 @@ def send_scheduled_messages(request):
 
     # Obtiene todas las tareas programadas que aún no se han completado
     tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
-
+    
     # Verifica las fechas y horas programadas y las fechas y horas actuales
     for task in tasks:
         task_date = task.dateprogramed.astimezone(tz)
@@ -496,16 +496,35 @@ def send_scheduled_messages(request):
     for task in tasks:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         print(f"Enviando mensaje a: {task.to}")
-        numbers = task.to.split(",")  # separar los números por coma
-        for number in numbers:
-            message = client.messages.create(
-                body=task.message,
-                from_='whatsapp:' + settings.TWILIO_WHATSAPP_NUMBER,
-                to=f'whatsapp:' + number.strip()  # eliminar espacios en blanco en el número
-            )
+        if task.to:
+            numbers = task.to.split(",")  # separar los números por coma
+            for number in numbers:
+                message = client.messages.create(
+                    body=task.message,
+                    from_='whatsapp:' + settings.TWILIO_COETEC_NUMBER,
+                    to=f'whatsapp:' + number.strip()  # eliminar espacios en blanco en el número
+                )
+        groups = task.groups.split(";")
+        for group in groups:
+            print(f"Procesando grupo {group}")
+            try:
+                whatsapp_group = WhatsappGroup.objects.get(groupname=group.strip())
+                print(f"Grupo encontrado: {whatsapp_group}")
+                for number in whatsapp_group.members.split(";"):
+                    print(f"Enviando mensaje a {number}")
+                    message = client.messages.create(
+                        body=task.message,
+                        from_='whatsapp:' + settings.TWILIO_COETEC_NUMBER,
+                        to=f'whatsapp:' + number.strip()
+                    )
+            except WhatsappGroup.DoesNotExist:
+                print(f"Grupo no encontrado: {group.strip()}")
+                pass
+
         # Marca la tarea como completada
         task.datecompleted = timezone.now()
         task.save()
+
 
     return redirect('tasks')
 
@@ -521,7 +540,7 @@ def enviar_mensaje_curl(request):
             return JsonResponse({'mensaje': 'Numero de telefono faltante'}, status=400)
         message = client.messages.create(
             body=mensaje,
-            from_='whatsapp:+14155238886',
+            from_='whatsapp:' + settings.TWILIO_COETEC_NUMBER,
             to=f'whatsapp:' + numero
         )
 
