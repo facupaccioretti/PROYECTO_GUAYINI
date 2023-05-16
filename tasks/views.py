@@ -21,7 +21,9 @@ from django.http import JsonResponse
 from twilio.rest import Client
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
-
+import messagebird
+from messagebird.conversation_message import MESSAGE_TYPE_HSM 
+from messagebird.conversation_message import MESSAGE_TYPE_TEXT
 
 
 
@@ -451,7 +453,7 @@ def calendar(request):
 
 
 
-def send_whatsapp_message(request):
+def send_whatsapp_message_twilio(request):
     if request.method == 'POST':
         account_sid = settings.TWILIO_ACCOUNT_SID
         auth_token = settings.TWILIO_AUTH_TOKEN
@@ -475,7 +477,7 @@ def success(request):
 
 
 @login_required
-def send_scheduled_messages(request):
+def send_scheduled_messages_twilio(request):
     # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
     tz = pytz.timezone("America/Argentina/Cordoba")
     
@@ -530,7 +532,7 @@ def send_scheduled_messages(request):
 
 
 @csrf_exempt
-def enviar_mensaje_curl(request):
+def enviar_mensaje_curl_twilio(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje')
         numero = request.POST.get('numero') or request.FILES.get('numero')
@@ -547,5 +549,161 @@ def enviar_mensaje_curl(request):
         return JsonResponse({'mensaje': 'Mensaje enviado exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+
+@csrf_exempt
+def enviar_mensaje_curl_messagebird(request):
+    if request.method == 'POST':
+        mensaje = request.POST.get('mensaje')
+        numero = request.POST.get('numero') or request.FILES.get('numero')
+
+        print("enviando: " + mensaje)
+        print('a: ' + numero)
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        if numero is None:
+            return JsonResponse({'mensaje': 'Numero de telefono faltante'}, status=400)
+        msg = client.conversation_start({
+            'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+            'to': numero,
+            'type': MESSAGE_TYPE_HSM,
+            'content': {
+                'hsm': {
+                'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                'templateName': 'notificaciones',
+                'language': {
+                    'policy': 'deterministic',
+                    'code': 'es_AR'
+            },
+            'params': [
+                {"default": mensaje},  
+            ]
+            }
+        }
+    })
+
+        return JsonResponse({'mensaje': 'Mensaje enviado exitosamente'})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+
+
+@login_required
+def send_scheduled_messages_messagebird(request):
+    # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
+    tz = pytz.timezone("America/Argentina/Cordoba")
+    # Obtener la fecha y hora actual en la zona horaria deseada
+    now = timezone.now().astimezone(tz)
+    # Obtiene todas las tareas programadas que aún no se han completado
+    tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
+    for task in tasks:
+        task_date = task.dateprogramed.astimezone(tz)
+        print(f"Fecha y hora programada: {task_date}, Fecha y hora actual: {now}")
+    for task in tasks:
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        print(f"Enviando mensaje a: {task.to}")
+        if task.to:
+            numbers = task.to.split(",")  # separar los números por coma
+            for number in numbers:
+                msg = client.conversation_start({
+                    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+                    'to': '' + number.strip(),
+                    'type': MESSAGE_TYPE_HSM,
+                    'content': {
+                        'hsm': {
+                        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                        'templateName': 'notificaciones',
+                        'language': {
+                            'policy': 'deterministic',
+                            'code': 'es_AR'
+                        },
+                        'params': [
+                            {"default": task.message},  
+                        ]
+                        }
+                    }
+                    })
+        groups = task.groups.split(";")
+        for group in groups:
+            print(f"Procesando grupo {group}")
+            try:
+                whatsapp_group = WhatsappGroup.objects.get(groupname=group.strip())
+                print(f"Grupo encontrado: {whatsapp_group}")
+                for number in whatsapp_group.members.split(";"):
+                    print(f"Enviando mensaje a {number}")
+                    msg = client.conversation_start({
+                    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+                    'to': '' + number.strip(),
+                    'type': MESSAGE_TYPE_HSM,
+                    'content': {
+                        'hsm': {
+                        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                        'templateName': 'notificaciones',
+                        'language': {
+                            'policy': 'deterministic',
+                            'code': 'es_AR'
+                        },
+                        'params': [
+                            {"default": task.message},  
+                        ]
+                        }
+                    }
+                    })
+            except WhatsappGroup.DoesNotExist:
+                print(f"Grupo no encontrado: {group.strip()}")
+                pass
+
+        task.datecompleted = timezone.now()
+        task.save()
+
+    return redirect('tasks')
+
+@login_required
+def send_scheduled_messages_messagebird_sandbox_HSM(request):
+    client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+
+    msg = client.conversation_start({
+    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+    'to': '5493515927657',
+    'type': MESSAGE_TYPE_HSM,
+    'content': {
+        'hsm': {
+        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+        'templateName': 'notificaciones',
+        'language': {
+            'policy': 'deterministic',
+            'code': 'es_AR'
+        },
+        'params': [
+            {"default": "Facu renego un poco pero está funcionando el mensaje HSM"},  
+        ]
+        }
+    }
+    })
+    print(Response)
+    return redirect('tasks')
+
+@login_required
+def send_scheduled_messages_messagebird_sandbox_TEXT(request):
+    client = messagebird.Client('7eBPqOuOnBEPcKXQWy0PdEyXM')
+    conversationID = '05f3bd3e5c9c42d48469d64a2854f7b9'
+# Enable conversations API whatsapp sandbox# client = messagebird.Client('1ekjMs368KTRlP0z6zfG9P70z', #features = [messagebird.Feature.ENABLE_CONVERSATIONS_API_WHATSAPP_SANDBOX])
+
+    msg = client.conversation_create_message(conversationID, {
+    'channelId': 'c5ff7af858dd4015bb28fe2efc3f3f66',
+    'type': MESSAGE_TYPE_TEXT,
+        'content': {
+            'text': 'Hola'
+        }
+    })
+    return redirect('tasks')
+
+     
+@login_required
+def mesagebird_conversation_start(request):     
     
+    client = messagebird.Client('7eBPqOuOnBEPcKXQWy0PdEyXM')
+
+    msg = client.conversation_start(
+        {'channelId': 'c5ff7af858dd4015bb28fe2efc3f3f66', 'to': '+5493515927657', 'type': MESSAGE_TYPE_TEXT,
+         'content': {'text': 'hola'}})
+
 

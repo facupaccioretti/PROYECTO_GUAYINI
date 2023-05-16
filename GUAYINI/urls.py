@@ -68,8 +68,14 @@ urlpatterns = [
     path('calendar/', views.calendar, name='calendar'),
     path('eventos/', views.get_eventos, name='eventos'),
     #WHATSAPP TWILLIO PATH
-    path('send_message/', views.send_whatsapp_message, name='whatsapp_message'),
+    path('send_message_twilio/', views.send_whatsapp_message_twilio, name='whatsapp_message_twilio'),
     path('success_message/', views.success, name='success'),
-    path('send_scheduled_messages/', views.send_scheduled_messages, name='send_scheduled_messages'),
-    path('enviar_mensaje_curl/', views.enviar_mensaje_curl, name='enviar_mensaje')
+    path('send_scheduled_messages_twilio/', views.send_scheduled_messages_twilio, name='send_scheduled_messages_twilio'),
+    path('enviar_mensaje_curl_twilio/', views.enviar_mensaje_curl_twilio, name='enviar_mensaje_twilio'),
+    path('send_scheduled_messages_messagebird/', views.send_scheduled_messages_messagebird, name='send_scheduled_messages_messagebird'),
+    path('send_scheduled_messages_messagebird_sandbox_HSM/', views.send_scheduled_messages_messagebird_sandbox_HSM, name='send_scheduled_messages_messagebird_sandbox_HSM'),
+    path('send_scheduled_messages_messagebird_sandbox_TEXT/', views.send_scheduled_messages_messagebird_sandbox_TEXT, name='send_scheduled_messages_messagebird_sandbox_TEXT'),
+    path('mesagebird_conversation_start/', views.mesagebird_conversation_start, name='mesagebird_conversation_start'),
+    path('enviar_mensaje_curl_messagebird/', views.enviar_mensaje_curl_messagebird, name='enviar_mensaje_curl_messagebird')
+    
 ]
