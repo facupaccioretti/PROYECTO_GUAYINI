@@ -76,6 +76,6 @@ urlpatterns = [
     path('send_scheduled_messages_messagebird_sandbox_HSM/', views.send_scheduled_messages_messagebird_sandbox_HSM, name='send_scheduled_messages_messagebird_sandbox_HSM'),
     path('send_scheduled_messages_messagebird_sandbox_TEXT/', views.send_scheduled_messages_messagebird_sandbox_TEXT, name='send_scheduled_messages_messagebird_sandbox_TEXT'),
     path('mesagebird_conversation_start/', views.mesagebird_conversation_start, name='mesagebird_conversation_start'),
-    path('enviar_mensaje_curl_messagebird/', views.enviar_mensaje_curl_messagebird, name='enviar_mensaje_curl_messagebird')
+    path('enviar_mensaje_curl/', views.enviar_mensaje_curl_messagebird, name='enviar_mensaje_curl_messagebird')
     
 ]

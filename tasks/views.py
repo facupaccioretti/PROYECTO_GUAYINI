@@ -553,35 +553,48 @@ def enviar_mensaje_curl_twilio(request):
 @csrf_exempt
 def enviar_mensaje_curl_messagebird(request):
     if request.method == 'POST':
-        mensaje = request.POST.get('mensaje')
-        numero = request.POST.get('numero') or request.FILES.get('numero')
+        mensaje = request.POST.get('mensaje', '').strip()
+        numeros = request.POST.getlist('numero[]')
 
-        print("enviando: " + mensaje)
-        print('a: ' + numero)
+        if not numeros:
+            return JsonResponse({'mensaje': 'Lista de números vacía'}, status=400)
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-        if numero is None:
-            return JsonResponse({'mensaje': 'Numero de telefono faltante'}, status=400)
-        msg = client.conversation_start({
-            'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
-            'to': numero,
-            'type': MESSAGE_TYPE_HSM,
-            'content': {
-                'hsm': {
-                'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                'templateName': 'notificaciones',
-                'language': {
-                    'policy': 'deterministic',
-                    'code': 'es_AR'
-            },
-            'params': [
-                {"default": mensaje},  
-            ]
-            }
-        }
-    })
+        success_count = 0
+        error_count = 0
 
-        return JsonResponse({'mensaje': 'Mensaje enviado exitosamente'})
+        for numero in numeros:
+            print("Enviando: " + mensaje)
+            print('A: ' + numero)
+
+            try:
+                msg = client.conversation_start({
+                    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+                    'to': numero,
+                    'type': MESSAGE_TYPE_HSM,
+                    'content': {
+                        'hsm': {
+                            'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                            'templateName': 'notificaciones',
+                            'language': {
+                                'policy': 'deterministic',
+                                'code': 'es_AR'
+                            },
+                            'params': [
+                                {"default": mensaje},
+                            ]
+                        }
+                    }
+                })
+
+                success_count += 1
+            except Exception as e:
+                # Manejar el error específico según tus necesidades
+                print("Error al enviar el mensaje:", str(e))
+                error_count += 1
+
+        return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
+                             'errores': error_count})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
