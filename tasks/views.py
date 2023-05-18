@@ -569,7 +569,7 @@ def enviar_mensaje_curl_messagebird(request):
 
             try:
                 msg = client.conversation_start({
-                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID_SECONDARY,
+                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
                     'to': numero,
                     'type': MESSAGE_TYPE_HSM,
                     'content': {
