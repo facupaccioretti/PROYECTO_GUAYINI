@@ -617,7 +617,7 @@ def send_scheduled_messages_messagebird(request):
             numbers = task.to.split(",")  # separar los números por coma
             for number in numbers:
                 msg = client.conversation_start({
-                    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
                     'to': '' + number.strip(),
                     'type': MESSAGE_TYPE_HSM,
                     'content': {
@@ -643,7 +643,7 @@ def send_scheduled_messages_messagebird(request):
                 for number in whatsapp_group.members.split(";"):
                     print(f"Enviando mensaje a {number}")
                     msg = client.conversation_start({
-                    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
                     'to': '' + number.strip(),
                     'type': MESSAGE_TYPE_HSM,
                     'content': {
@@ -674,7 +674,7 @@ def send_scheduled_messages_messagebird_sandbox_HSM(request):
     client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
 
     msg = client.conversation_start({
-    'channelId': '779e3365-f297-451c-a74b-b3ffa91c3fe7',
+    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
     'to': '5493515927657',
     'type': MESSAGE_TYPE_HSM,
     'content': {
@@ -686,7 +686,7 @@ def send_scheduled_messages_messagebird_sandbox_HSM(request):
             'code': 'es_AR'
         },
         'params': [
-            {"default": "Facu renego un poco pero está funcionando el mensaje HSM"},  
+            {"default": "Mensaje de prueba"},  
         ]
         }
     }
