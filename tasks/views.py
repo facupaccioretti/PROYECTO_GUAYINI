@@ -554,10 +554,12 @@ def enviar_mensaje_curl_twilio(request):
 def enviar_mensaje_curl_messagebird(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje', '').strip()
-        numeros = request.POST.getlist('numero[]')
+        numeros_str = request.POST.get('numeros', '')
 
-        if not numeros:
+        if not numeros_str:
             return JsonResponse({'mensaje': 'Lista de números vacía'}, status=400)
+
+        numeros = numeros_str.split(',')
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         success_count = 0
