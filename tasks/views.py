@@ -571,7 +571,7 @@ def enviar_mensaje_curl_messagebird(request):
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         success_count = 0
         error_count = 0
-        if numeros:
+        if numeros is not None and numeros:
             for numero in numeros:
                 print("Enviando el mensaje: " + mensaje)
                 print('A los numeros: ' + numero)
@@ -601,7 +601,7 @@ def enviar_mensaje_curl_messagebird(request):
                     # Manejar el error específico según tus necesidades
                     print("Error al enviar el mensaje:", str(e))
                     error_count += 1
-        if grupos:
+        if grupos is not None and grupos:
             for grupo in grupos:
                 print("Enviando el mensaje: " + mensaje)
                 print('Al grupo: ' + grupo)
