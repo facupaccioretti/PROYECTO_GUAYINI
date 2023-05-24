@@ -553,21 +553,28 @@ def enviar_mensaje_curl_twilio(request):
 @csrf_exempt
 def enviar_mensaje_curl_messagebird(request):
     if request.method == 'POST':
+        user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
+        if user is None:
+            return JsonResponse({'mensaje': 'Usuario o contraseña incorrecta. Intentelo de nuevo.'}, status=400)
+        else:
+            login(request, user)
         mensaje = request.POST.get('mensaje', '').strip()
         numeros_str = request.POST.get('numeros', '')
+        grupos_str = request.POST.get('grupos', '')
 
-        if not numeros_str:
-            return JsonResponse({'mensaje': 'Lista de números vacía'}, status=400)
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
 
         numeros = numeros_str.split(',')
-
+        grupos = grupos_str.split(',')
+        
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         success_count = 0
         error_count = 0
 
         for numero in numeros:
-            print("Enviando: " + mensaje)
-            print('A: ' + numero)
+            print("Enviando el mensaje: " + mensaje)
+            print('A los numeros: ' + numero)
 
             try:
                 msg = client.conversation_start({
@@ -594,6 +601,38 @@ def enviar_mensaje_curl_messagebird(request):
                 # Manejar el error específico según tus necesidades
                 print("Error al enviar el mensaje:", str(e))
                 error_count += 1
+        if grupos is not None:
+            for grupo in grupos:
+                print("Enviando el mensaje: " + mensaje)
+                print('Al grupo: ' + grupo)
+                try:
+                    whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+                    print(f"Grupo encontrado: {whatsapp_group}")
+                    for number in whatsapp_group.members.split(";"):
+                        print(f"Enviando mensaje a {number}")
+                        msg = client.conversation_start({
+                        'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
+                        'to': '' + number.strip(),
+                        'type': MESSAGE_TYPE_HSM,
+                        'content': {
+                            'hsm': {
+                            'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                            'templateName': 'notificaciones',
+                            'language': {
+                                'policy': 'deterministic',
+                                'code': 'es_AR'
+                            },
+                            'params': [
+                                {"default": mensaje},  
+                            ]
+                            }
+                        }
+                        })
+                        success_count += 1
+                except WhatsappGroup.DoesNotExist:
+                    print(f"Grupo no encontrado: {grupo.strip()}")
+                    error_count += 1
+                
 
         return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
                              'errores': error_count})
