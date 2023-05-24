@@ -608,7 +608,7 @@ def enviar_mensaje_curl_messagebird(request):
                 try:
                     whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
                     print(f"Grupo encontrado: {whatsapp_group}")
-                    for number in whatsapp_group.members.split(";"):
+                    for number in whatsapp_group.members.split(","):
                         print(f"Enviando mensaje a {number}")
                         msg = client.conversation_start({
                         'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
