@@ -559,8 +559,8 @@ def enviar_mensaje_curl_messagebird(request):
         else:
             login(request, user)
         mensaje = request.POST.get('mensaje', '').strip()
-        numeros_str = request.POST.get('numeros', '')
-        grupos_str = request.POST.get('grupos', '')
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
 
         if not numeros_str and not grupos_str:
             return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
@@ -571,36 +571,36 @@ def enviar_mensaje_curl_messagebird(request):
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         success_count = 0
         error_count = 0
+        if numeros is not None:
+            for numero in numeros:
+                print("Enviando el mensaje: " + mensaje)
+                print('A los numeros: ' + numero)
 
-        for numero in numeros:
-            print("Enviando el mensaje: " + mensaje)
-            print('A los numeros: ' + numero)
-
-            try:
-                msg = client.conversation_start({
-                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-                    'to': numero,
-                    'type': MESSAGE_TYPE_HSM,
-                    'content': {
-                        'hsm': {
-                            'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                            'templateName': 'notificaciones',
-                            'language': {
-                                'policy': 'deterministic',
-                                'code': 'es_AR'
-                            },
-                            'params': [
-                                {"default": mensaje},
-                            ]
+                try:
+                    msg = client.conversation_start({
+                        'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
+                        'to': numero,
+                        'type': MESSAGE_TYPE_HSM,
+                        'content': {
+                            'hsm': {
+                                'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                                'templateName': 'notificaciones',
+                                'language': {
+                                    'policy': 'deterministic',
+                                    'code': 'es_AR'
+                                },
+                                'params': [
+                                    {"default": mensaje},
+                                ]
+                            }
                         }
-                    }
-                })
+                    })
 
-                success_count += 1
-            except Exception as e:
-                # Manejar el error específico según tus necesidades
-                print("Error al enviar el mensaje:", str(e))
-                error_count += 1
+                    success_count += 1
+                except Exception as e:
+                    # Manejar el error específico según tus necesidades
+                    print("Error al enviar el mensaje:", str(e))
+                    error_count += 1
         if grupos is not None:
             for grupo in grupos:
                 print("Enviando el mensaje: " + mensaje)
