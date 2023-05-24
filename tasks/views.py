@@ -565,13 +565,13 @@ def enviar_mensaje_curl_messagebird(request):
         if not numeros_str and not grupos_str:
             return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
 
-        numeros = numeros_str.split(',')
-        grupos = grupos_str.split(',')
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
         
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
         success_count = 0
         error_count = 0
-        if numeros is not None and numeros:
+        if numeros:
             for numero in numeros:
                 print("Enviando el mensaje: " + mensaje)
                 print('A los numeros: ' + numero)
@@ -601,7 +601,7 @@ def enviar_mensaje_curl_messagebird(request):
                     # Manejar el error específico según tus necesidades
                     print("Error al enviar el mensaje:", str(e))
                     error_count += 1
-        if grupos is not None and grupos:
+        if grupos:
             for grupo in grupos:
                 print("Enviando el mensaje: " + mensaje)
                 print('Al grupo: ' + grupo)
