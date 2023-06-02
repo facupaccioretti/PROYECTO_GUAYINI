@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm
-from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup
+from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -24,8 +24,9 @@ from django.views.decorators.csrf import csrf_protect
 import messagebird
 from messagebird.conversation_message import MESSAGE_TYPE_HSM 
 from messagebird.conversation_message import MESSAGE_TYPE_TEXT
-
-
+import json
+import requests
+from django.utils.crypto import get_random_string
 
 # Agregar esta línea para definir el timezone por defecto
 timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
@@ -61,6 +62,8 @@ def signup(request):
             try:
                 user = User.objects.create_user(username=request.POST['username'], password=request.POST['password1'])
                 user.save()
+                token = get_random_string(length=32)
+                AccessToken.objects.create(user=user, token=token)
                 login(request, user)
                 return redirect('tasks')
             except IntegrityError:
@@ -100,7 +103,11 @@ def signout(request):
 def profile(request):
     user = request.user
     context = {'user': user,}
-    return render(request, 'profile.html',)
+    try:
+        token = AccessToken.objects.get(user=request.user).token
+    except AccessToken.DoesNotExist:
+        token = None
+    return render(request, 'profile.html', {'token': token})
 
 #NOTIFICATION VIEWS
     # WHATSAPP VIEWS:
@@ -451,8 +458,6 @@ def get_eventos(request):
 def calendar(request):
     return render(request, 'calendar.html')
 
-
-
 def send_whatsapp_message_twilio(request):
     if request.method == 'POST':
         account_sid = settings.TWILIO_ACCOUNT_SID
@@ -474,7 +479,6 @@ def send_whatsapp_message_twilio(request):
 
 def success(request):
     return render(request, 'successWhatsapp.html')
-
 
 @login_required
 def send_scheduled_messages_twilio(request):
@@ -530,7 +534,6 @@ def send_scheduled_messages_twilio(request):
 
     return redirect('tasks')
 
-
 @csrf_exempt
 def enviar_mensaje_curl_twilio(request):
     if request.method == 'POST':
@@ -550,15 +553,117 @@ def enviar_mensaje_curl_twilio(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
+from django.views.decorators.csrf import csrf_exempt
+from .models import AccessToken
+
 @csrf_exempt
 def enviar_mensaje_curl_messagebird(request):
     if request.method == 'POST':
-        user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
-        if user is None:
-            return JsonResponse({'mensaje': 'Usuario o contraseña incorrecta. Intentelo de nuevo.'}, status=400)
-        else:
-            login(request, user)
         mensaje = request.POST.get('mensaje', '').strip()
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
+        token = request.POST.get('token', '')
+
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        success_count = 0
+        error_count = 0
+
+        # Obtener todos los tokens de acceso existentes
+        access_tokens = AccessToken.objects.values_list('token', flat=True)
+
+        if token in access_tokens:
+            if numeros:
+                for numero in numeros:
+                    print("Enviando el mensaje: " + mensaje)
+                    print('A los números: ' + numero)
+
+                    try:
+                        msg = client.conversation_start({
+                            'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
+                            'to': numero,
+                            'type': MESSAGE_TYPE_HSM,
+                            'content': {
+                                'hsm': {
+                                    'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                                    'templateName': 'notificaciones',
+                                    'language': {
+                                        'policy': 'deterministic',
+                                        'code': 'es_AR'
+                                    },
+                                    'params': [
+                                        {"default": mensaje},
+                                    ]
+                                }
+                            }
+                        })
+
+                        success_count += 1
+                    except Exception as e:
+                        # Manejar el error específico según tus necesidades
+                        print("Error al enviar el mensaje:", str(e))
+                        error_count += 1
+
+            if grupos:
+                for grupo in grupos:
+                    print("Enviando el mensaje: " + mensaje)
+                    print('Al grupo: ' + grupo)
+                    try:
+                        whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+                        print(f"Grupo encontrado: {whatsapp_group}")
+                        for number in whatsapp_group.members.split(","):
+                            print(f"Enviando mensaje a {number}")
+                            try:
+                                msg = client.conversation_start({
+                                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
+                                    'to': '' + number.strip(),
+                                    'type': MESSAGE_TYPE_HSM,
+                                    'content': {
+                                        'hsm': {
+                                            'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
+                                            'templateName': 'notificaciones',
+                                            'language': {
+                                                'policy': 'deterministic',
+                                                'code': 'es_AR'
+                                            },
+                                            'params': [
+                                                {"default": mensaje},
+                                            ]
+                                        }
+                                    }
+                                })
+
+                                success_count += 1
+                            except Exception as e:
+                                # Manejar el error específico según tus necesidades
+                                print("Error al enviar el mensaje:", str(e))
+                                error_count += 1
+                    except WhatsappGroup.DoesNotExist:
+                        print(f"Grupo no encontrado: {grupo.strip()}")
+                        error_count += 1
+
+            return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
+                                 'errores': error_count})
+        else:
+            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+
+
+import messagebird
+import json
+import requests
+
+@csrf_exempt
+def enviar_llamada_curl_messagebird(request):
+    if request.method == 'POST':
+        token = request.POST.get('token', '')
+        texto_llamada = request.POST.get('texto_llamada', '').strip()
         numeros_str = request.POST.get('numeros', '').strip()
         grupos_str = request.POST.get('grupos', '').strip()
 
@@ -567,78 +672,86 @@ def enviar_mensaje_curl_messagebird(request):
 
         numeros = numeros_str.split(',') if numeros_str else []
         grupos = grupos_str.split(',') if grupos_str else []
-        
-        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)  # Reemplaza 'YOUR_ACCESS_KEY' con tu propia clave de acceso de MessageBird
         success_count = 0
         error_count = 0
-        if numeros:
-            for numero in numeros:
-                print("Enviando el mensaje: " + mensaje)
-                print('A los numeros: ' + numero)
+                # Obtener todos los tokens de acceso existentes
+        access_tokens = AccessToken.objects.values_list('token', flat=True)
 
-                try:
-                    msg = client.conversation_start({
-                        'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-                        'to': numero,
-                        'type': MESSAGE_TYPE_HSM,
-                        'content': {
-                            'hsm': {
-                                'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                                'templateName': 'notificaciones',
-                                'language': {
-                                    'policy': 'deterministic',
-                                    'code': 'es_AR'
-                                },
-                                'params': [
-                                    {"default": mensaje},
+        if token in access_tokens:
+            if numeros:
+                for numero in numeros:
+                    print("Enviando llamada: " + texto_llamada)
+                    print('Al número: ' + numero)
+
+                    try:
+                        callFlow = {
+                            'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
+                            'destination': numero,
+                            'callFlow': {
+                                'steps': [
+                                    {
+                                        'action': 'say',
+                                        'options': {
+                                            'payload': texto_llamada,
+                                            'language': 'es',
+                                            'voice': 'female'
+                                        }
+                                    }
                                 ]
                             }
                         }
-                    })
 
-                    success_count += 1
-                except Exception as e:
-                    # Manejar el error específico según tus necesidades
-                    print("Error al enviar el mensaje:", str(e))
-                    error_count += 1
-        if grupos:
-            for grupo in grupos:
-                print("Enviando el mensaje: " + mensaje)
-                print('Al grupo: ' + grupo)
-                try:
-                    whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
-                    print(f"Grupo encontrado: {whatsapp_group}")
-                    for number in whatsapp_group.members.split(","):
-                        print(f"Enviando mensaje a {number}")
-                        msg = client.conversation_start({
-                        'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-                        'to': '' + number.strip(),
-                        'type': MESSAGE_TYPE_HSM,
-                        'content': {
-                            'hsm': {
-                            'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                            'templateName': 'notificaciones',
-                            'language': {
-                                'policy': 'deterministic',
-                                'code': 'es_AR'
-                            },
-                            'params': [
-                                {"default": mensaje},  
-                            ]
-                            }
-                        }
-                        })
+                        response = client.call_create(**callFlow, webhook=None)
                         success_count += 1
-                except WhatsappGroup.DoesNotExist:
-                    print(f"Grupo no encontrado: {grupo.strip()}")
-                    error_count += 1
-                
+                    except messagebird.client.ErrorException as e:
+                        print("Error al enviar la llamada:", e)
+                        error_count += 1
 
-        return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
-                             'errores': error_count})
+            if grupos:
+                for grupo in grupos:
+                    print("Enviando llamada: " + texto_llamada)
+                    print('Al grupo: ' + grupo)
+                    try:
+                        whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+                        print(f"Grupo encontrado: {whatsapp_group}")
+                        for number in whatsapp_group.members.split(","):
+                            print(f"Llamando a {number}")
+                            try:
+                                callFlow = {
+                                    'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
+                                    'destination': number,
+                                    'callFlow': {
+                                        'steps': [
+                                            {
+                                                'action': 'say',
+                                                'options': {
+                                                    'payload': texto_llamada,
+                                                    'language': 'es',
+                                                    'voice': 'female'
+                                                }
+                                            }
+                                        ],
+                                        'webhook': 'http://127.0.0.1:8000/recibir_webhook/'  # Establece la URL de tu webhook aquí
+                                    }
+                                }
+
+                                response = client.call_create(**callFlow)
+                                success_count += 1
+                            except messagebird.client.ErrorException as e:
+                                print("Error al enviar la llamada:", e)
+                                error_count += 1
+                    except WhatsappGroup.DoesNotExist:
+                        print(f"Grupo no encontrado: {grupo.strip()}")
+                        error_count += 1
+
+            return JsonResponse({'mensaje': 'Llamadas enviadas exitosamente: {}'.format(success_count),
+                                'errores': error_count})
+        else:
+            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
-
 
 @login_required
 def send_scheduled_messages_messagebird(request):
@@ -749,8 +862,7 @@ def send_scheduled_messages_messagebird_sandbox_TEXT(request):
         }
     })
     return redirect('tasks')
-
-     
+    
 @login_required
 def mesagebird_conversation_start(request):     
     
@@ -760,4 +872,21 @@ def mesagebird_conversation_start(request):
         {'channelId': 'c5ff7af858dd4015bb28fe2efc3f3f66', 'to': '+5493515927657', 'type': MESSAGE_TYPE_TEXT,
          'content': {'text': 'hola'}})
 
+def generate_token(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        # Generar un nuevo token de acceso para el usuario y guardar en la base de datos
+        AccessToken.objects.filter(user=request.user).delete()
+        token = get_random_string(length=32)
+        AccessToken.objects.create(user=request.user, token=token)
 
+    return redirect('profile')
+
+@csrf_exempt
+def recibir_webhook(request):
+    if request.method == 'POST':
+        # Manejar los datos recibidos en el webhook
+        # Realizar las acciones necesarias
+
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=405)

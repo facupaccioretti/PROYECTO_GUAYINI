@@ -8,6 +8,15 @@
     <section class="col-md-6 mx-auto">
         <section class=" card card-body">
             <h1 class="display-1 text-center"> {{user.username}}'s profile</h1>
+            {% if token %}
+            <p>Token de Acceso: {{ token }}</p>
+            {% else %}
+            <h5 class="display-1 text-center">No se ha generado ningún token de acceso.</h5>
+            {% endif %}
+            <form action="{% url 'generate_token' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit">Generar Nuevo Token</button>
+            </form>
             <p class="text-center"></p>
         </section>
     </section>
