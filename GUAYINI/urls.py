@@ -79,6 +79,8 @@ urlpatterns = [
     path('enviar_mensaje_curl/', views.enviar_mensaje_curl_messagebird, name='enviar_mensaje_curl_messagebird'),
     path('generate_token/', views.generate_token, name='generate_token'),
     path('recibir_webhook/', views.recibir_webhook, name='recibir_webhook'),
-    path('enviar_llamada_curl/', views.enviar_llamada_curl_messagebird, name='enviar_llamada_curl_messagebird')
+    path('enviar_llamada_curl_messagebird/', views.enviar_llamada_curl_messagebird, name='enviar_llamada_curl_messagebird'),
+    path('enviar_llamada_curl/', views.enviar_llamada_curl, name='enviar_llamada_curl'),
+    path('enviar_llamada_alerta/', views.enviar_llamada_alerta, name='enviar_llamada_alerta')
     
 ]

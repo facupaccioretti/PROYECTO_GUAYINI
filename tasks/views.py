@@ -666,13 +666,40 @@ def enviar_llamada_curl_messagebird(request):
         mensaje = request.POST.get('mensaje', '').strip()
         numeros_str = request.POST.get('numeros', '').strip()
         grupos_str = request.POST.get('grupos', '').strip()
-        numeroaux = request.POST.get('numeroaux')
+        numerosaux_str = request.POST.get('numerosaux')
+        gruposaux_str = request.POST.get('gruposaux')
 
         if not numeros_str and not grupos_str:
             return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
 
         numeros = numeros_str.split(',') if numeros_str else []
         grupos = grupos_str.split(',') if grupos_str else []
+        numeros_auxiliares = numerosaux_str.split(',') if numerosaux_str else []
+        grupos_auxiliares = gruposaux_str.split(',') if gruposaux_str else []
+        # LISTAS DE NUMEROS (PRINCIPALES Y AUXILIARES)
+        numeros_principales_total = []
+        numeros_auxiliares_total = []
+
+        # Agregar números principales individuales
+        numeros_principales_total.extend(numeros)
+        # Agregar números auxiliares individuales
+        numeros_auxiliares_total.extend(numeros_auxiliares)
+        # Agregar números principales de los grupos
+        for grupo in grupos:
+            try:
+                whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+                numeros_grupo = whatsapp_group.members.split(",")
+                numeros_principales_total.extend(numeros_grupo)
+            except WhatsappGroup.DoesNotExist:
+                pass
+        # Agregar números auxiliares de los grupos auxiliares
+        for grupo_auxiliar in grupos_auxiliares:
+            try:
+                whatsapp_group_auxiliar = WhatsappGroup.objects.get(groupname=grupo_auxiliar.strip())
+                numeros_grupo_auxiliar = whatsapp_group_auxiliar.members.split(",")
+                numeros_auxiliares_total.extend(numeros_grupo_auxiliar)
+            except WhatsappGroup.DoesNotExist:
+                pass
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)  # Reemplaza 'YOUR_ACCESS_KEY' con tu propia clave de acceso de MessageBird
         success_count = 0
@@ -681,6 +708,7 @@ def enviar_llamada_curl_messagebird(request):
         access_tokens = AccessToken.objects.values_list('token', flat=True)
 
         if token in access_tokens:
+            # SI SE PASARON NUMEROS SE INICIA ESTE BUCLE FOR
             if numeros:
                 for numero in numeros:
                     print("Enviando llamada: " + mensaje)
@@ -688,7 +716,7 @@ def enviar_llamada_curl_messagebird(request):
 
                     try:
                         callFlow = {
-                            'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
+                            'source': '5493518008514', 
                             'destination': numero,
                             'callFlow': {
                                 'steps': [
@@ -708,11 +736,12 @@ def enviar_llamada_curl_messagebird(request):
                         success_count += 1
                         print(response)
                         #UNA VEZ QUE CREO LA LLAMADA, OBTENGO EL ID 
-                        if response.data.status == 'queued':
+                        if response.data.status == 'queued': # LA PETICION DE CREACION DE LA LLAMADA ES CORRECTA Y LA API LA ENCOLÓ
                             call_id = response.data.id
+                            print('La informacion de la llamada es la siguiente: ')
                             print(call_id)
-                            print('DURMIENDO 1 MINUTITO PAPÁ, A VER SI LA API CONECTA Y PUEDO VERIFICAR SI CONTESTARON O NO LA LLAMADA')
-                            time.sleep(60)
+                            print('DURMIENDO 30 SEGUNDOS PARA VERIFICAR SI CONTESTARON O NO LA LLAMADA')
+                            time.sleep(30)
                             try:
                                     call = client.call(call_id)
                                     print('  id                : %s' % call.data.id)
@@ -725,28 +754,30 @@ def enviar_llamada_curl_messagebird(request):
                                     for error in e.errors:
                                             print('  code        : %d' % error.code)
                                             print('  description : %s' % error.description)
-                            if call.data.status == 'no_answer':
-                                print('LLAMADA NO CONTESTADA, LLAMANDO A: ' + numeroaux)
-                                    
-                                callFlow = { 'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
-                                                'destination': numeroaux,
-                                                'callFlow': {
-                                                    'steps': [
-                                                        {
-                                                            'action': 'say',
-                                                            'options': {
-                                                                'payload': mensaje,
-                                                                'language': 'es-mx',
-                                                                'voice': 'female'
+                            if call.data.status == 'no_answer' and numeros_auxiliares:
+
+                                for numero_auxiliar in numeros_auxiliares:
+                                    print('LLAMADA NO CONTESTADA, LLAMANDO A: ' + numero_auxiliar)
+                                        
+                                    callFlow = { 'source': '5493518008514', 
+                                                    'destination': numero_auxiliar,
+                                                    'callFlow': {
+                                                        'steps': [
+                                                            {
+                                                                'action': 'say',
+                                                                'options': {
+                                                                    'payload': mensaje,
+                                                                    'language': 'es-mx',
+                                                                    'voice': 'female'
+                                                                }
                                                             }
-                                                        }
-                                                    ]
+                                                        ]
+                                                    }
                                                 }
-                                            }
-                                response = client.call_create(**callFlow, webhook=None)
-                                success_count += 1
-                                llamada_auxiliar = True
-                                print(response)
+                                    response = client.call_create(**callFlow, webhook=None)
+                                    success_count += 1
+                                    llamada_auxiliar = True
+                                    print(response)
                     except messagebird.client.ErrorException as e:
                         print("Error al enviar la llamada:", e)
                         error_count += 1
@@ -937,4 +968,245 @@ def recibir_webhook(request):
     else:
         return HttpResponse(status=405)
 
+
+@csrf_exempt
+def enviar_llamada_curl(request):
+    if request.method == 'POST':
+        token = request.POST.get('token', '')
+        mensaje = request.POST.get('mensaje', '').strip()
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
+        numerosaux_str = request.POST.get('numerosaux')
+        gruposaux_str = request.POST.get('gruposaux')
+
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
+        numeros_auxiliares = numerosaux_str.split(',') if numerosaux_str else []
+        grupos_auxiliares = gruposaux_str.split(',') if gruposaux_str else []
+        # LISTAS DE NUMEROS (PRINCIPALES Y AUXILIARES)
+        numeros_principales_total = []
+        numeros_auxiliares_total = []
+
+        # Agregar números principales individuales
+        numeros_principales_total.extend(numeros)
+        # Agregar números auxiliares individuales
+        numeros_auxiliares_total.extend(numeros_auxiliares)
+        # Agregar números principales de los grupos
+        for grupo in grupos:
+            try:
+                whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+                numeros_grupo = whatsapp_group.members.split(",")
+                numeros_principales_total.extend(numeros_grupo)
+            except WhatsappGroup.DoesNotExist:
+                pass
+        # Agregar números auxiliares de los grupos auxiliares
+        for grupo_auxiliar in grupos_auxiliares:
+            try:
+                whatsapp_group_auxiliar = WhatsappGroup.objects.get(groupname=grupo_auxiliar.strip())
+                numeros_grupo_auxiliar = whatsapp_group_auxiliar.members.split(",")
+                numeros_auxiliares_total.extend(numeros_grupo_auxiliar)
+            except WhatsappGroup.DoesNotExist:
+                pass
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        success_count = 0
+        error_count = 0
+        llamadas_no_contestadas = 0
+        llamadas_auxiliares = 0
+
+        # Obtener todos los tokens de acceso existentes
+        access_tokens = AccessToken.objects.values_list('token', flat=True)
+
+        if token in access_tokens:
+            # Si se pasaron números, se inicia este bucle for
+            if numeros_principales_total:
+                for numero in numeros_principales_total:
+                    print("Enviando llamada: " + mensaje)
+                    print('Al número: ' + numero)
+
+                    try:
+                        callFlow = {
+                            'source': '5493518008514',
+                            'destination': numero,
+                            'callFlow': {
+                                'steps': [
+                                    {
+                                        'action': 'say',
+                                        'options': {
+                                            'payload': mensaje,
+                                            'language': 'es-mx',
+                                            'voice': 'female'
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+
+                        response = client.call_create(**callFlow, webhook=None)
+                        success_count += 1
+                        print(response)
+                        # Una vez que se crea la llamada, se obtiene el ID
+                        if response.data.status == 'queued':
+                            call_id = response.data.id
+                            print('La información de la llamada es la siguiente:')
+                            print(call_id)
+                            print('DURMIENDO 60 SEGUNDOS PARA VERIFICAR SI CONTESTARON O NO LA LLAMADA')
+                            time.sleep(60)
+                            try:
+                                call = client.call(call_id)
+                                print('  id                : %s' % call.data.id)
+                                print('  status            : %s' % call.data.status)
+                                print('  source            : %s' % call.data.source)
+                                print('  destination       : %s' % call.data.destination)
+
+                                if call.data.status == 'no_answer':
+                                    llamadas_no_contestadas += 1
+                                    if numeros_auxiliares_total:
+                                        for numero_auxiliar in numeros_auxiliares_total:
+                                            print('LLAMADA NO CONTESTADA, LLAMANDO A: ' + numero_auxiliar)
+
+                                            callFlow = {
+                                                'source': '5493518008514',
+                                                'destination': numero_auxiliar,
+                                                'callFlow': {
+                                                    'steps': [
+                                                        {
+                                                            'action': 'say',
+                                                            'options': {
+                                                                'payload': mensaje,
+                                                                'language': 'es-mx',
+                                                                'voice': 'female'
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                            response = client.call_create(**callFlow, webhook=None)
+                                            success_count += 1
+                                            llamadas_auxiliares += 1
+                                            print(response)
+                            except messagebird.client.ErrorException as e:
+                                print('An error occurred while creating a call:')
+                                for error in e.errors:
+                                    print('  code        : %d' % error.code)
+                                    print('  description : %s' % error.description)
+                        else:
+                            error_count += 1
+                    except messagebird.client.ErrorException as e:
+                        print("Error al enviar la llamada:", e)
+                        error_count += 1
+
+            return JsonResponse({
+                'mensaje': 'Llamadas enviadas exitosamente: {}'.format(success_count),
+                'errores': error_count,
+                'llamadas_no_contestadas': llamadas_no_contestadas,
+                'llamadas_auxiliares_enviadas': llamadas_auxiliares
+            })
+
+        else:
+            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
+
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+
+@csrf_exempt
+def enviar_llamada_alerta(request):
+    if request.method == 'POST':
+        token = request.POST.get('token', '')
+        mensaje = request.POST.get('mensaje', '').strip()
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
+
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
+
+        if not numeros and not grupos:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
+        success_count = 0
+        error_count = 0
+        llamadas_no_contestadas = []
+        llamadas_contestadas = []
+
+        # Obtener todos los tokens de acceso existentes
+        access_tokens = AccessToken.objects.values_list('token', flat=True)
+
+        if token in access_tokens:
+            numeros_totales = numeros + grupos  # Combinar números individuales y grupos en una única lista
+
+            for numero in numeros_totales:
+                print("Enviando llamada: " + mensaje)
+                print('Al número: ' + numero)
+
+                try:
+                    callFlow = {
+                        'source': '5493518008514',
+                        'destination': numero,
+                        'callFlow': {
+                            'steps': [
+                                {
+                                    'action': 'say',
+                                    'options': {
+                                        'payload': mensaje,
+                                        'language': 'es-mx',
+                                        'voice': 'female'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+
+                    response = client.call_create(**callFlow, webhook=None)
+                    success_count += 1
+                    print(response)
+
+                    # Verificar si la llamada fue contestada
+                    if response.data.status == 'queued':
+                        call_id = response.data.id
+                        print('La información de la llamada es la siguiente:')
+                        print(call_id)
+                        print('DURMIENDO 50 SEGUNDOS PARA VERIFICAR SI CONTESTARON O NO LA LLAMADA')
+                        time.sleep(50)
+                        try:
+                            call = client.call(call_id)
+                            print('  id                : %s' % call.data.id)
+                            print('  status            : %s' % call.data.status)
+                            print('  source            : %s' % call.data.source)
+                            print('  destination       : %s' % call.data.destination)
+
+                            if call.data.status == 'no_answer':
+                                llamadas_no_contestadas.append(numero)
+                            else:
+                                llamadas_contestadas.append(numero)
+
+                        except messagebird.client.ErrorException as e:
+                            print('Ocurrió un error al obtener información de la llamada:', e)
+                            error_count += 1
+
+                except messagebird.client.ErrorException as e:
+                    print("Error al enviar la llamada:", e)
+                    error_count += 1
+
+                if call.data.status != 'no_answer':
+                    break  # Salir del bucle si la llamada fue contestada
+
+            return JsonResponse({
+                'mensaje': 'Llamadas enviadas exitosamente: {}'.format(success_count),
+                'errores': error_count,
+                'llamadas_contestadas': llamadas_contestadas,
+                'llamadas_no_contestadas': llamadas_no_contestadas
+            })
+
+        else:
+            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
+
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
 
