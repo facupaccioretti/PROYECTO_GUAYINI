@@ -1,0 +1,38 @@
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+July 06, 2023 - 11:24:13
+Django version 4.1.7, using settings 'GUAYINI.settings'
+Starting development server at http://0.0.0.0:8080/
+Quit the server with CONTROL-C.
+[06/Jul/2023 11:24:24] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:24:33] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:24:54] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:25:03] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:25:24] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:25:33] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:25:54] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:26:03] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:26:24] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:26:33] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:26:54] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:27:03] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:27:24] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:27:33] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:27:54] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:28:03] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:28:19] "GET / HTTP/1.1" 200 5622
+[06/Jul/2023 11:28:19] "GET /static/css/styles.css HTTP/1.1" 200 127
+[06/Jul/2023 11:28:19] "GET /static/images/whatsapp_logo.png HTTP/1.1" 200 4947
+[06/Jul/2023 11:28:19] "GET /static/images/mail_logo.png HTTP/1.1" 200 2931
+[06/Jul/2023 11:28:19] "GET /static/images/phone_logo.png HTTP/1.1" 200 2839
+[06/Jul/2023 11:28:19] "GET /static/images/LOGO%20GUAYINI%20ESCRITO%20FONDO%20BLANCO.png HTTP/1.1" 200 108355
+[06/Jul/2023 11:28:19] "GET /static/images/call_contact_us_logo.png HTTP/1.1" 200 8863
+[06/Jul/2023 11:28:19] "GET /static/images/mail_contact_us_logo.png HTTP/1.1" 200 172686
+[06/Jul/2023 11:28:19] "GET /static/images/landing_page.jpg HTTP/1.1" 200 554549
+Not Found: /favicon.ico
+[06/Jul/2023 11:28:20] "GET /favicon.ico HTTP/1.1" 404 10004
+[06/Jul/2023 11:28:24] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:28:33] "GET /signin/ HTTP/1.1" 200 7296
+[06/Jul/2023 11:28:54] "GET /signin/ HTTP/1.1" 200 7296
