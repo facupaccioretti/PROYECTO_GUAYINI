@@ -921,7 +921,6 @@ def recibir_webhook(request):
     else:
         return HttpResponse(status=405)
 
-
 @csrf_exempt
 def enviar_llamada_curl(request):
     if request.method == 'POST':
