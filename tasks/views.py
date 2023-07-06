@@ -1219,6 +1219,8 @@ def enviar_mensaje_curl_facebook(request):
                 }
 
                 response = requests.post(url, headers=headers, json=data)
+                print('La respuesta de facebook fue: ')
+                print(response)
                 if response.status_code == 200:
                     success_count += 1
                 else:
