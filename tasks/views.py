@@ -1162,7 +1162,7 @@ def enviar_llamada_alerta(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-
+@csrf_exempt
 def enviar_mensaje_curl_facebook(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje', '').strip()
