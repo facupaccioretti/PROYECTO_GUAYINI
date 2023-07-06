@@ -28,6 +28,13 @@ import json
 import requests
 from django.utils.crypto import get_random_string
 import time
+from django.views.decorators.csrf import csrf_exempt
+from .models import AccessToken
+import requests
+from django.conf import settings
+from django.http import JsonResponse
+
+
 # Agregar esta línea para definir el timezone por defecto
 timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
 
@@ -553,8 +560,6 @@ def enviar_mensaje_curl_twilio(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-from django.views.decorators.csrf import csrf_exempt
-from .models import AccessToken
 
 @csrf_exempt
 def enviar_mensaje_curl_messagebird(request):
@@ -654,10 +659,6 @@ def enviar_mensaje_curl_messagebird(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-
-import messagebird
-import json
-import requests
 
 @csrf_exempt
 def enviar_llamada_curl_messagebird(request):
@@ -900,54 +901,6 @@ def send_scheduled_messages_messagebird(request):
 
     return redirect('tasks')
 
-@login_required
-def send_scheduled_messages_messagebird_sandbox_HSM(request):
-    client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-
-    msg = client.conversation_start({
-    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-    'to': '5493515927657',
-    'type': MESSAGE_TYPE_HSM,
-    'content': {
-        'hsm': {
-        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-        'templateName': 'notificaciones',
-        'language': {
-            'policy': 'deterministic',
-            'code': 'es_AR'
-        },
-        'params': [
-            {"default": "Mensaje de prueba"},  
-        ]
-        }
-    }
-    })
-    print(Response)
-    return redirect('tasks')
-
-@login_required
-def send_scheduled_messages_messagebird_sandbox_TEXT(request):
-    client = messagebird.Client('7eBPqOuOnBEPcKXQWy0PdEyXM')
-    conversationID = '05f3bd3e5c9c42d48469d64a2854f7b9'
-# Enable conversations API whatsapp sandbox# client = messagebird.Client('1ekjMs368KTRlP0z6zfG9P70z', #features = [messagebird.Feature.ENABLE_CONVERSATIONS_API_WHATSAPP_SANDBOX])
-
-    msg = client.conversation_create_message(conversationID, {
-    'channelId': 'c5ff7af858dd4015bb28fe2efc3f3f66',
-    'type': MESSAGE_TYPE_TEXT,
-        'content': {
-            'text': 'Hola'
-        }
-    })
-    return redirect('tasks')
-    
-@login_required
-def mesagebird_conversation_start(request):     
-    
-    client = messagebird.Client('7eBPqOuOnBEPcKXQWy0PdEyXM')
-
-    msg = client.conversation_start(
-        {'channelId': 'c5ff7af858dd4015bb28fe2efc3f3f66', 'to': '+5493515927657', 'type': MESSAGE_TYPE_TEXT,
-         'content': {'text': 'hola'}})
 
 def generate_token(request):
     if request.method == 'POST' and request.user.is_authenticated:
@@ -1210,3 +1163,110 @@ def enviar_llamada_alerta(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
+
+def enviar_mensaje_curl_facebook(request):
+    if request.method == 'POST':
+        mensaje = request.POST.get('mensaje', '').strip()
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
+        token = request.POST.get('token', '')
+
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
+
+        success_count = 0
+        error_count = 0
+
+        # Verificar el token de acceso del usuario
+        access_tokens = AccessToken.objects.values_list('token', flat=True)
+
+        if token in access_tokens:
+            # URL y encabezados de la solicitud a la API de Facebook
+            url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+            headers = {
+                'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+                'Content-Type': 'application/json'
+            }
+
+            # Enviar mensajes a números individuales
+            for numero in numeros:
+                print("Enviando el mensaje: " + mensaje)
+                print('A los números: ' + numero)
+
+                data = {
+                    "messaging_product": "whatsapp",
+                    "to": numero,
+                    "type": "template",
+                    "template": {
+                        "name": "notificaciones_marketing",
+                        "language": {
+                            "code": "es_AR"
+                        },
+                        "components": [
+                            {
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": mensaje
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+
+                response = requests.post(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    success_count += 1
+                else:
+                    error_count += 1
+
+            # Enviar mensajes a grupos
+            for grupo in grupos:
+                print("Enviando el mensaje: " + mensaje)
+                print('Al grupo: ' + grupo)
+
+                # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
+
+                for number in members:
+                    print(f"Enviando mensaje a {number}")
+
+                    data = {
+                        "messaging_product": "whatsapp",
+                        "to": number,
+                        "type": "template",
+                        "template": {
+                            "name": "notificaciones_marketing",
+                            "language": {
+                                "code": "es_AR"
+                            },
+                            "components": [
+                                {
+                                    "type": "body",
+                                    "parameters": [
+                                        {
+                                            "type": "text",
+                                            "text": mensaje
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+
+                    response = requests.post(url, headers=headers, json=data)
+                    if response.status_code == 200:
+                        success_count += 1
+                    else:
+                        error_count += 1
+
+            return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
+                                 'Errores': error_count})
+        else:
+            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
