@@ -1216,7 +1216,8 @@ def webhook_facebook(request):
         # Procesa las notificaciones de eventos enviadas por WhatsApp aquí
         data = json.loads(request.body)
         # Realiza las acciones necesarias con los datos del evento
-
+        print('Mensaje de facebook:')
+        print(data)
         # Responde con un código de estado 200 (OK) para confirmar la recepción del evento
         return HttpResponse(status=200)
     
