@@ -1195,15 +1195,32 @@ def enviar_mensaje_curl_facebook(request):
 
 @csrf_exempt
 def webhook_facebook(request):
-    if request.method == 'POST':
-        # Obtén los datos del evento enviado por Facebook
+    #VERIFICACION FACEBOOK
+    if request.method == 'GET':
+        # Obtiene los parámetros de consulta de la URL
+        hub_mode = request.GET.get('hub.mode')
+        hub_challenge = request.GET.get('hub.challenge')
+        hub_verify_token = request.GET.get('hub.verify_token')
+
+        # Verifica el valor de hub.verify_token con tu cadena de token configurada
+        if hub_verify_token == 'guayini_token_aguantebelgrano':
+            # Responde con el valor hub.challenge para completar la verificación
+            return HttpResponse(hub_challenge, content_type='text/plain')
+        else:
+            # Si el token de verificación no coincide, responde con un código de estado 403 (Prohibido)
+            return HttpResponse(status=403)
+    
+
+    #WEBHOOK PARA ADQUIRIR DATA DE FACEBOOK
+    elif request.method == 'POST':
+        # Procesa las notificaciones de eventos enviadas por WhatsApp aquí
         data = json.loads(request.body)
-        # Procesa los datos y realiza las acciones correspondientes
-        # según los tipos de eventos que hayas seleccionado en Facebook
-        print('Datos recibidos por facebook')
-        print(data)
+        # Realiza las acciones necesarias con los datos del evento
+
         # Responde con un código de estado 200 (OK) para confirmar la recepción del evento
         return HttpResponse(status=200)
+    
+    #ERROR PARA OTRAS SOLICITUDES HTTP
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
