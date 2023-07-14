@@ -831,76 +831,6 @@ def enviar_llamada_curl_messagebird(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-@login_required
-def send_scheduled_messages_messagebird(request):
-    # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
-    tz = pytz.timezone("America/Argentina/Cordoba")
-    # Obtener la fecha y hora actual en la zona horaria deseada
-    now = timezone.now().astimezone(tz)
-    # Obtiene todas las tareas programadas que aún no se han completado
-    tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
-    for task in tasks:
-        task_date = task.dateprogramed.astimezone(tz)
-        print(f"Fecha y hora programada: {task_date}, Fecha y hora actual: {now}")
-    for task in tasks:
-        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)
-        print(f"Enviando mensaje a: {task.to}")
-        if task.to:
-            numbers = task.to.split(",")  # separar los números por coma
-            for number in numbers:
-                msg = client.conversation_start({
-                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-                    'to': '' + number.strip(),
-                    'type': MESSAGE_TYPE_HSM,
-                    'content': {
-                        'hsm': {
-                        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                        'templateName': 'notificaciones',
-                        'language': {
-                            'policy': 'deterministic',
-                            'code': 'es_AR'
-                        },
-                        'params': [
-                            {"default": task.message},  
-                        ]
-                        }
-                    }
-                    })
-        groups = task.groups.split(";")
-        for group in groups:
-            print(f"Procesando grupo {group}")
-            try:
-                whatsapp_group = WhatsappGroup.objects.get(groupname=group.strip())
-                print(f"Grupo encontrado: {whatsapp_group}")
-                for number in whatsapp_group.members.split(";"):
-                    print(f"Enviando mensaje a {number}")
-                    msg = client.conversation_start({
-                    'channelId': settings.MESSAGEBIRD_CHANNEL_ID,
-                    'to': '' + number.strip(),
-                    'type': MESSAGE_TYPE_HSM,
-                    'content': {
-                        'hsm': {
-                        'namespace': 'b7512d00_9a7c_4fb2_9b37_6a693d095188',
-                        'templateName': 'notificaciones',
-                        'language': {
-                            'policy': 'deterministic',
-                            'code': 'es_AR'
-                        },
-                        'params': [
-                            {"default": task.message},  
-                        ]
-                        }
-                    }
-                    })
-            except WhatsappGroup.DoesNotExist:
-                print(f"Grupo no encontrado: {group.strip()}")
-                pass
-
-        task.datecompleted = timezone.now()
-        task.save()
-
-    return redirect('tasks')
-
 
 def generate_token(request):
     if request.method == 'POST' and request.user.is_authenticated:
@@ -911,15 +841,6 @@ def generate_token(request):
 
     return redirect('profile')
 
-@csrf_exempt
-def recibir_webhook(request):
-    if request.method == 'POST':
-        # Manejar los datos recibidos en el webhook
-        # Realizar las acciones necesarias
-
-        return HttpResponse(status=200)
-    else:
-        return HttpResponse(status=405)
 
 @csrf_exempt
 def enviar_llamada_curl(request):
@@ -1271,3 +1192,20 @@ def enviar_mensaje_curl_facebook(request):
             return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+
+@csrf_exempt
+def webhook_facebook(request):
+    if request.method == 'POST':
+        # Obtén los datos del evento enviado por Facebook
+        data = json.loads(request.body)
+        # Procesa los datos y realiza las acciones correspondientes
+        # según los tipos de eventos que hayas seleccionado en Facebook
+        print('Datos recibidos por facebook')
+        print(data)
+        # Responde con un código de estado 200 (OK) para confirmar la recepción del evento
+        return HttpResponse(status=200)
+    else:
+        # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
+        return HttpResponse(status=405)
+
+
