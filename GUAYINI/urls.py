@@ -72,7 +72,6 @@ urlpatterns = [
     path('success_message/', views.success, name='success'),
     path('send_scheduled_messages_twilio/', views.send_scheduled_messages_twilio, name='send_scheduled_messages_twilio'),
     path('enviar_mensaje_curl_twilio/', views.enviar_mensaje_curl_twilio, name='enviar_mensaje_twilio'),
-    path('send_scheduled_messages_messagebird/', views.send_scheduled_messages_messagebird, name='send_scheduled_messages_messagebird'),
     path('enviar_mensaje_curl_messagebird/', views.enviar_mensaje_curl_messagebird, name='enviar_mensaje_curl_messagebird'),
     path('generate_token/', views.generate_token, name='generate_token'),
     path('webhook_facebook/', views.webhook_facebook, name='webhook_facebook'),
