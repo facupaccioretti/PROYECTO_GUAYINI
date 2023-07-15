@@ -1148,14 +1148,15 @@ def enviar_plantilla_wam_curl(request):
 
             response = requests.post(url, headers=headers, json=data)
             print('La respuesta de Facebook fue: ')
-            print(response)
             print(response.json())
 
             if response.status_code == 200:
                 success_count += 1
                 # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
+                response_data = response.json()
+                message_id = response_data['messages'][0]['id']
                 mensaje = Task.objects.create(
-                    wamID=response.json().get('id') if 'id' in response.json() else None,
+                    wamID=message_id,
                     tittle='',
                     message=mensaje,
                     status='sent',
@@ -1210,8 +1211,10 @@ def enviar_plantilla_wam_curl(request):
                 if response.status_code == 200:
                     success_count += 1
                     # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
+                    response_data = response.json()
+                    message_id = response_data['messages'][0]['id']
                     mensaje = Task.objects.create(
-                        wamID=response.json().get('id') if 'id' in response.json() else None,
+                        wamID=message_id,
                         tittle='',
                         message=mensaje,
                         status='sent',
@@ -1232,6 +1235,7 @@ def enviar_plantilla_wam_curl(request):
                              'Errores': error_count})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+
 
 @csrf_exempt
 def webhook_facebook(request):
