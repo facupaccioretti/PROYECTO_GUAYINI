@@ -14,13 +14,17 @@ class AccessToken(models.Model):
 #Notification Models:
 
 class Task(models.Model):
+    wamID = models.TextField(blank=True)
     tittle = models.CharField(max_length=100)
     message = models.TextField(blank=True)
+    status = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    type = models.TextField(blank=True)
     datecompleted = models.DateTimeField(null=True, blank = True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
     to = models.TextField(blank=True)
+    sender = models.TextField(blank=True)
     groups = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 

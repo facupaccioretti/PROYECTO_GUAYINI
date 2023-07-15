@@ -842,6 +842,10 @@ def generate_token(request):
     return redirect('profile')
 
 
+#LLAMADAS
+#la función "enviar_llamada_curl" maneja los números principales y 
+# auxiliares por separado y realiza llamadas adicionales a los números auxiliares 
+# en caso de que las llamadas principales no sean contestadas.
 @csrf_exempt
 def enviar_llamada_curl(request):
     if request.method == 'POST':
@@ -985,6 +989,10 @@ def enviar_llamada_curl(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
+#la función "enviar_llamada_alerta" combina todos los números principales y de grupos
+#en una sola lista y maneja las llamadas no contestadas y contestadas en 
+#función de esta lista combinada.
+
 @csrf_exempt
 def enviar_llamada_alerta(request):
     if request.method == 'POST':
@@ -1083,8 +1091,7 @@ def enviar_llamada_alerta(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-@csrf_exempt
-def enviar_mensaje_curl_facebook(request):
+def enviar_plantilla_wam_curl(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje', '').strip()
         numeros_str = request.POST.get('numeros', '').strip()
@@ -1120,6 +1127,7 @@ def enviar_mensaje_curl_facebook(request):
                     "messaging_product": "whatsapp",
                     "to": numero,
                     "type": "template",
+                    "sender": settings.FACEBOOK_SENDER_NUMBER_1,
                     "template": {
                         "name": "notificaciones_marketing",
                         "language": {
@@ -1140,10 +1148,27 @@ def enviar_mensaje_curl_facebook(request):
                 }
 
                 response = requests.post(url, headers=headers, json=data)
-                print('La respuesta de facebook fue: ')
+                print('La respuesta de Facebook fue: ')
                 print(response)
+
                 if response.status_code == 200:
                     success_count += 1
+                    # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
+                    mensaje = Task.objects.create(
+                        wamID=response.json().get('id'),
+                        tittle='',
+                        message=mensaje,
+                        status='sent',
+                        created=datetime.now(),
+                        type='template',
+                        datecompleted=None,
+                        dateprogramed=None,
+                        important=False,
+                        to=numero,
+                        sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                        groups='',
+                        user=request.user
+                    )
                 else:
                     error_count += 1
 
@@ -1161,6 +1186,7 @@ def enviar_mensaje_curl_facebook(request):
                         "messaging_product": "whatsapp",
                         "to": number,
                         "type": "template",
+                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
                         "template": {
                             "name": "notificaciones_marketing",
                             "language": {
@@ -1183,6 +1209,22 @@ def enviar_mensaje_curl_facebook(request):
                     response = requests.post(url, headers=headers, json=data)
                     if response.status_code == 200:
                         success_count += 1
+                        # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
+                        mensaje = Task.objects.create(
+                            wamID=response.json().get('id'),
+                            tittle='',
+                            message=mensaje,
+                            status='sent',
+                            created=datetime.now(),
+                            type='template',
+                            datecompleted=None,
+                            dateprogramed=None,
+                            important=False,
+                            to=number,
+                            sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                            groups=grupo,
+                            user=request.user
+                        )
                     else:
                         error_count += 1
 
@@ -1192,6 +1234,7 @@ def enviar_mensaje_curl_facebook(request):
             return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+    
 
 @csrf_exempt
 def webhook_facebook(request):
@@ -1213,12 +1256,48 @@ def webhook_facebook(request):
 
     #WEBHOOK PARA ADQUIRIR DATA DE FACEBOOK
     elif request.method == 'POST':
-        # Procesa las notificaciones de eventos enviadas por WhatsApp aquí
         data = json.loads(request.body)
-        # Realiza las acciones necesarias con los datos del evento
-        print('Mensaje de facebook:')
-        print(data)
-        # Responde con un código de estado 200 (OK) para confirmar la recepción del evento
+
+        # Verifica si es una respuesta a un mensaje enviado previamente
+        if 'statuses' in data['entry'][0]['changes'][0]['value']:
+            # Extrae los datos relevantes de la respuesta
+            message_id = data['entry'][0]['changes'][0]['value']['statuses'][0]['id']
+            status = data['entry'][0]['changes'][0]['value']['statuses'][0]['status']
+
+            # Busca el mensaje en tu base de datos usando el campo wamID
+            try:
+                mensaje = Task.objects.get(wamID=message_id)
+                mensaje.status = status
+                mensaje.save()
+            except Task.DoesNotExist:
+                # Maneja el caso si el mensaje no existe en la base de datos
+                pass
+        else:
+            # Es una notificación de un nuevo mensaje recibido
+            wa_id = data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+            message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
+            timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
+            message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+            status = 'received'
+
+            # Crea una nueva instancia del modelo Task y guarda los datos
+            mensaje = Task(
+                wamID=message_id,
+                tittle='',
+                message=message_text,
+                status=status,
+                created=datetime.fromtimestamp(timestamp),
+                type='',
+                datecompleted=None,
+                dateprogramed=None,
+                important=False,
+                to=wa_id,
+                sender='',
+                groups='',
+                user=request.user
+            )
+            mensaje.save()
+
         return HttpResponse(status=200)
     
     #ERROR PARA OTRAS SOLICITUDES HTTP

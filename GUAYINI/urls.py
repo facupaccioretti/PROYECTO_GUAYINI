@@ -77,7 +77,7 @@ urlpatterns = [
     path('webhook_facebook/', views.webhook_facebook, name='webhook_facebook'),
     path('enviar_llamada_curl_messagebird/', views.enviar_llamada_curl_messagebird, name='enviar_llamada_curl_messagebird'),
     path('enviar_llamada_curl/', views.enviar_llamada_curl, name='enviar_llamada_curl'),
-    path('enviar_mensaje_curl_facebook/', views.enviar_mensaje_curl_facebook, name='enviar_mensaje_curl_facebook'),
+    path('enviar_plantilla_wam_curl/', views.enviar_plantilla_wam_curl, name='enviar_plantilla_wam_curl'),
     path('enviar_llamada_alerta/', views.enviar_llamada_alerta, name='enviar_llamada_alerta')
     
 ]
