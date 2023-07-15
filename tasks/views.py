@@ -1091,6 +1091,7 @@ def enviar_llamada_alerta(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
+@csrf_exempt
 def enviar_plantilla_wam_curl(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje', '').strip()
