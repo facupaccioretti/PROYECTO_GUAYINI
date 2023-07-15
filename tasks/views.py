@@ -1149,6 +1149,7 @@ def enviar_plantilla_wam_curl(request):
             response = requests.post(url, headers=headers, json=data)
             print('La respuesta de Facebook fue: ')
             print(response)
+            print(response.json())
 
             if response.status_code == 200:
                 success_count += 1
