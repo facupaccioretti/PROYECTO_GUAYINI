@@ -1109,24 +1109,83 @@ def enviar_plantilla_wam_curl(request):
         error_count = 0
 
         # Verificar el token de acceso del usuario
-        access_tokens = AccessToken.objects.values_list('token', flat=True)
+        token_obj = get_object_or_404(Token, token=token)
+        user = token_obj.user
 
-        if token in access_tokens:
-            # URL y encabezados de la solicitud a la API de Facebook
-            url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
-            headers = {
-                'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
-                'Content-Type': 'application/json'
+        # URL y encabezados de la solicitud a la API de Facebook
+        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+        headers = {
+            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        }
+
+        # Enviar mensajes a números individuales
+        for numero in numeros:
+            print("Enviando el mensaje: " + mensaje)
+            print('A los números: ' + numero)
+
+            data = {
+                "messaging_product": "whatsapp",
+                "to": numero,
+                "type": "template",
+                "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                "template": {
+                    "name": "notificaciones_marketing",
+                    "language": {
+                        "code": "es_AR"
+                    },
+                    "components": [
+                        {
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": mensaje
+                                }
+                            ]
+                        }
+                    ]
+                }
             }
 
-            # Enviar mensajes a números individuales
-            for numero in numeros:
-                print("Enviando el mensaje: " + mensaje)
-                print('A los números: ' + numero)
+            response = requests.post(url, headers=headers, json=data)
+            print('La respuesta de Facebook fue: ')
+            print(response)
+
+            if response.status_code == 200:
+                success_count += 1
+                # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
+                mensaje = Task.objects.create(
+                    wamID=response.json().get('id'),
+                    tittle='',
+                    message=mensaje,
+                    status='sent',
+                    created=datetime.now(),
+                    type='template',
+                    datecompleted=None,
+                    dateprogramed=None,
+                    important=False,
+                    to=numero,
+                    sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                    groups='',
+                    user=user
+                )
+            else:
+                error_count += 1
+
+        # Enviar mensajes a grupos
+        for grupo in grupos:
+            print("Enviando el mensaje: " + mensaje)
+            print('Al grupo: ' + grupo)
+
+            # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
+
+            for number in members:
+                print(f"Enviando mensaje a {number}")
 
                 data = {
                     "messaging_product": "whatsapp",
-                    "to": numero,
+                    "to": number,
                     "type": "template",
                     "sender": settings.FACEBOOK_SENDER_NUMBER_1,
                     "template": {
@@ -1149,9 +1208,6 @@ def enviar_plantilla_wam_curl(request):
                 }
 
                 response = requests.post(url, headers=headers, json=data)
-                print('La respuesta de Facebook fue: ')
-                print(response)
-
                 if response.status_code == 200:
                     success_count += 1
                     # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
@@ -1165,77 +1221,18 @@ def enviar_plantilla_wam_curl(request):
                         datecompleted=None,
                         dateprogramed=None,
                         important=False,
-                        to=numero,
+                        to=number,
                         sender=settings.FACEBOOK_SENDER_NUMBER_1,
-                        groups='',
-                        user=request.user
+                        groups=grupo,
+                        user=user
                     )
                 else:
                     error_count += 1
 
-            # Enviar mensajes a grupos
-            for grupo in grupos:
-                print("Enviando el mensaje: " + mensaje)
-                print('Al grupo: ' + grupo)
-
-                # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
-
-                for number in members:
-                    print(f"Enviando mensaje a {number}")
-
-                    data = {
-                        "messaging_product": "whatsapp",
-                        "to": number,
-                        "type": "template",
-                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-                        "template": {
-                            "name": "notificaciones_marketing",
-                            "language": {
-                                "code": "es_AR"
-                            },
-                            "components": [
-                                {
-                                    "type": "body",
-                                    "parameters": [
-                                        {
-                                            "type": "text",
-                                            "text": mensaje
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-
-                    response = requests.post(url, headers=headers, json=data)
-                    if response.status_code == 200:
-                        success_count += 1
-                        # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
-                        mensaje = Task.objects.create(
-                            wamID=response.json().get('id'),
-                            tittle='',
-                            message=mensaje,
-                            status='sent',
-                            created=datetime.now(),
-                            type='template',
-                            datecompleted=None,
-                            dateprogramed=None,
-                            important=False,
-                            to=number,
-                            sender=settings.FACEBOOK_SENDER_NUMBER_1,
-                            groups=grupo,
-                            user=request.user
-                        )
-                    else:
-                        error_count += 1
-
-            return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
-                                 'Errores': error_count})
-        else:
-            return JsonResponse({'mensaje': 'Token de acceso inválido'}, status=400)
+        return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count),
+                             'Errores': error_count})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
-    
 
 @csrf_exempt
 def webhook_facebook(request):
