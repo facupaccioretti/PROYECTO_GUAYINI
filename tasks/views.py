@@ -22,8 +22,6 @@ from twilio.rest import Client
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import csrf_protect
 import messagebird
-from messagebird.conversation_message import MESSAGE_TYPE_HSM 
-from messagebird.conversation_message import MESSAGE_TYPE_TEXT
 import json
 import requests
 from django.utils.crypto import get_random_string
@@ -1109,8 +1107,8 @@ def enviar_plantilla_wam_curl(request):
         error_count = 0
 
         # Verificar el token de acceso del usuario
-        token_obj = get_object_or_404(Token, token=token)
-        user = token_obj.user
+        access_token = get_object_or_404(AccessToken, token=token)
+        user = access_token.user
 
         # URL y encabezados de la solicitud a la API de Facebook
         url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
