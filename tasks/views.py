@@ -1210,7 +1210,7 @@ def enviar_plantilla_wam_curl(request):
                     success_count += 1
                     # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
                     mensaje = Task.objects.create(
-                        wamID=response.json().get('id'),
+                        wamID=response.json().get('id') if 'id' in response.json() else None,
                         tittle='',
                         message=mensaje,
                         status='sent',
