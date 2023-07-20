@@ -90,6 +90,16 @@ class MailGroup(models.Model):
 
     def __str__(self):
         return self.groupname + '-by ' + self.user.username
+    
+class WhatsappGroup(models.Model):
+    groupname = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    members = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.groupname + '-by ' + self.user.username
 
 class PhoneGroup(models.Model):
     groupname = models.CharField(max_length=100)
