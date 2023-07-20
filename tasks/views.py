@@ -1279,6 +1279,12 @@ def webhook_facebook(request):
             timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
             message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             status = 'received'
+
+            # Obtener el usuario autenticado
+            user = None
+            if request.user.is_authenticated:
+                user = request.user
+
              # Obtener las palabras activadoras de los bots desde el modelo Bots
             bots_activators = list(Bots.objects.filter(user=request.user).values_list('activator', flat=True))
 

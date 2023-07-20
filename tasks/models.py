@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
-
 class Bots(models.Model):
     bot_id = models.AutoField(primary_key=True)  # Campo para el ID único del bot
     tittle = models.CharField(max_length=100)
@@ -13,6 +12,7 @@ class Bots(models.Model):
 
     def __str__(self):
         return self.tittle
+
 
 class AccessToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -30,7 +30,7 @@ class Task(models.Model):
     message = models.TextField(blank=True)
     status = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    Type = models.TextField(blank=True)
+    type = models.TextField(blank=True)
     datecompleted = models.DateTimeField(null=True, blank = True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
@@ -69,8 +69,9 @@ class Phone(models.Model):
         return self.tittle + '-by ' + self.user.username
 
 #Group Models:
+#modelo de grupo de contactos}
 
-class WhatsappGroup(models.Model):
+class Group(models.Model):
     groupname = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     members = models.TextField(blank=True)
