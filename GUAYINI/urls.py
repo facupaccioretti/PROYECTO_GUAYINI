@@ -78,6 +78,11 @@ urlpatterns = [
     path('enviar_llamada_curl_messagebird/', views.enviar_llamada_curl_messagebird, name='enviar_llamada_curl_messagebird'),
     path('enviar_llamada_curl/', views.enviar_llamada_curl, name='enviar_llamada_curl'),
     path('enviar_plantilla_wam_curl/', views.enviar_plantilla_wam_curl, name='enviar_plantilla_wam_curl'),
+    path('bot_list/', views.bot_list, name='bot_list'),
+    path('create_bot/', views.create_bot, name='create_bot'),
+    path('bot_detail/<int:bot_id>/', views.bot_detail, name='bot_detail'),
+    path('complete_bot/<int:bot_id>/', views.complete_bot, name='complete_bot'),
+    path('delete_bot/<int:bot_id>/', views.delete_bot, name='delete_bot'),
     path('enviar_llamada_alerta/', views.enviar_llamada_alerta, name='enviar_llamada_alerta')
     
 ]

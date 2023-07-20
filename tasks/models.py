@@ -3,6 +3,17 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
+
+class Bots(models.Model):
+    bot_id = models.AutoField(primary_key=True)  # Campo para el ID único del bot
+    tittle = models.CharField(max_length=100)
+    activator = models.CharField(max_length=255)  # El contenido que activa al bot
+    body = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.tittle
+
 class AccessToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=255)
@@ -19,7 +30,7 @@ class Task(models.Model):
     message = models.TextField(blank=True)
     status = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    type = models.TextField(blank=True)
+    Type = models.TextField(blank=True)
     datecompleted = models.DateTimeField(null=True, blank = True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)

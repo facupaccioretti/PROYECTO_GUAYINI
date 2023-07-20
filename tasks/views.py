@@ -5,8 +5,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm
-from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken
+from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm
+from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -1236,7 +1236,6 @@ def enviar_plantilla_wam_curl(request):
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
 
-
 @csrf_exempt
 def webhook_facebook(request):
     #VERIFICACION FACEBOOK
@@ -1280,6 +1279,60 @@ def webhook_facebook(request):
             timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
             message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             status = 'received'
+             # Obtener las palabras activadoras de los bots desde el modelo Bots
+            bots_activators = list(Bots.objects.filter(user=request.user).values_list('activator', flat=True))
+
+            # Verificar si el mensaje contiene la palabra activadora de algún bot
+            for activator in bots_activators:
+                if activator in message_text:
+                    # Obtener el bot correspondiente a la palabra activadora
+                    try:
+                        bot = Bots.objects.get(activator=activator, user=request.user)
+
+                        # URL y encabezados de la solicitud a la API de Facebook
+                        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+                        headers = {
+                            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+                            'Content-Type': 'application/json'
+                        }
+
+                        # Datos del mensaje a enviar
+                        data = {
+                            "messaging_product": "whatsapp",
+                            "to": bot.to,
+                            "type": "text",
+                            "text": bot.message_response,  # Mensaje de respuesta del bot
+                            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                        }
+
+                        # Enviar el mensaje usando la API de Facebook
+                        response = requests.post(url, headers=headers, json=data)
+                        if response.status_code == 200:
+                            # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
+                            response_data = response.json()
+                            message_id = response_data['messages'][0]['id']
+                            mensaje = Task.objects.create(
+                                wamID=message_id,
+                                tittle='',
+                                message=message_text,
+                                status='sent',
+                                created=datetime.now(),
+                                type='text',
+                                datecompleted=None,
+                                dateprogramed=None,
+                                important=False,
+                                to=bot.to,
+                                sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                                groups='',
+                                user=request.user
+                            )
+                        else:
+                            # Ocurrió un error al enviar el mensaje
+                            # Puedes manejar el error de acuerdo a tus necesidades
+                            pass
+
+                    except Bots.DoesNotExist:
+                        pass
 
             # Crea una nueva instancia del modelo Task y guarda los datos
             mensaje = Task(
@@ -1306,4 +1359,54 @@ def webhook_facebook(request):
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
 
+@login_required
+def bot_list(request):
+    bots = Bots.objects.filter(user=request.user)
 
+    return render(request, 'bot_list.html', {'bots': bots})
+
+
+@login_required
+def create_bot(request):
+    if request.method == "GET": 
+        return render(request, 'create_bot.html', {"form": BotForm()})
+    else:
+        try:
+            form = BotForm(request.POST)
+            new_bot = form.save(commit=False)
+            new_bot.user = request.user  # Asigna el usuario propietario al bot
+            new_bot.save()
+            return redirect('bot_list')  # Redirige a la página que muestra los bots del usuario
+        except ValueError:
+            return render(request, 'create_bot.html', {"form": BotForm(), "error": "Error creating bot."})
+        
+@login_required
+def bot_detail(request, bot_id):
+    bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+
+    if request.method == "POST":
+        form = BotForm(request.POST, instance=bot)
+        if form.is_valid():
+            form.save()
+            return redirect('bot_list')
+
+    else:
+        form = BotForm(instance=bot)
+
+    return render(request, 'bot_detail.html', {'bot': bot, 'form': form})
+
+@login_required
+def complete_bot(request, bot_id):
+    bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+
+    # Lógica para completar el bot, si es necesario
+
+    return redirect('bot_detail', bot_id=bot_id)  # Redirige de vuelta a la vista "bot_detail"
+
+@login_required
+def delete_bot(request, bot_id):
+    bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+
+    # Lógica para eliminar el bot, si es necesario
+
+    return redirect('bot_list')  # Redirige de vuelta a la vista "bot_list" después de eliminar el bot

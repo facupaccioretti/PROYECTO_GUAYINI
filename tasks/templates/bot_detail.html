@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<main class="container">
+  <div class="row">
+    <div class="col-md-4 offset-md-4">
+      <h4>{{ bot.tittle }}</h4>
+      {{ error }}
+      <div>
+        <form method="POST">
+          {% csrf_token %}
+          {{ form.media }}
+          {{ form.as_p }}
+  
+          <button class="btn btn-primary">
+            Update
+          </button>
+        </form>
+  
+        <form action="{% url 'complete_bot' bot.bot_id %}" method="POST">
+          {% csrf_token %}
+          <button class="btn btn-success">
+            Complete
+          </button>
+        </form>
+  
+        <form action="{% url 'delete_bot' bot.bot_id %}" method="POST">
+          {% csrf_token %}
+          <button class="btn btn-danger">
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock %}
