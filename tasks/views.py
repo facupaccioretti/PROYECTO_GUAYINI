@@ -1303,7 +1303,9 @@ def webhook_facebook(request):
                     }
 
                     # Enviar el mensaje usando la API de Facebook
+                    
                     response = requests.post(url, headers=headers, json=data)
+                    print(response)
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
                         response_data = response.json()
