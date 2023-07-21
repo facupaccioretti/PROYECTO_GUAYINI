@@ -30,7 +30,7 @@ class Task(models.Model):
     message = models.TextField(blank=True)
     status = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    type = models.TextField(blank=True)
+    Type = models.TextField(blank=True)
     datecompleted = models.DateTimeField(null=True, blank = True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
