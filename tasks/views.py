@@ -1321,7 +1321,7 @@ def webhook_facebook(request):
                             to=wa_id,
                             sender=settings.FACEBOOK_SENDER_NUMBER_1,
                             groups='',
-                            user='Facundo'  # Aquí dejamos el campo 'user' como None ya que no se refiere a ningún usuario específico
+                            user= bot.user   # Aquí dejamos el campo 'user' como None ya que no se refiere a ningún usuario específico
                         )
                     else:
                         # Ocurrió un error al enviar el mensaje
@@ -1342,7 +1342,7 @@ def webhook_facebook(request):
                 to=wa_id,
                 sender='',
                 groups='',
-                user='Facundo'
+                user= bot.user 
             )
             mensaje.save()
 
