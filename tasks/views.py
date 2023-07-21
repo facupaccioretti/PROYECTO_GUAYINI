@@ -1281,10 +1281,7 @@ def webhook_facebook(request):
             status = 'received'
 
             # Obtener el usuario autenticado
-            user = None
-            if request.user.is_authenticated:
-                user = request.user
-
+            user = request.user if request.user.is_authenticated else None
              # Obtener las palabras activadoras de los bots desde el modelo Bots
             bots_activators = list(Bots.objects.filter(user=request.user).values_list('activator', flat=True))
 
