@@ -31,6 +31,7 @@ from .models import AccessToken
 import requests
 from django.conf import settings
 from django.http import JsonResponse
+from django.contrib.auth import get_user_model
 
 
 # Agregar esta línea para definir el timezone por defecto
@@ -1286,6 +1287,16 @@ def webhook_facebook(request):
             # Verificar si el mensaje contiene la palabra activadora de algún bot
             for bot in bots:
                 if bot.activator in message_text:
+                    User = get_user_model()
+
+                # Verificar si el usuario del bot existe en la base de datos
+                    try:
+                        user = User.objects.get(pk=bot.user_id)
+                    except User.DoesNotExist:
+                    # Si el usuario del bot no existe, puedes decidir qué hacer en este caso
+                    # Por ejemplo, puedes crear un usuario genérico para los bots o manejarlo de otra manera
+                    # Aquí simplemente asignamos None al campo user si el usuario no existe
+                        user = None
                     # URL y encabezados de la solicitud a la API de Facebook
                     url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
                     headers = {
