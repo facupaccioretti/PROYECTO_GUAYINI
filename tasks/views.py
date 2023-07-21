@@ -1280,61 +1280,52 @@ def webhook_facebook(request):
             message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             status = 'received'
 
-            # Obtener el usuario autenticado
-            user = request.user if request.user.is_authenticated else None
-             # Obtener las palabras activadoras de los bots desde el modelo Bots
-            bots_activators = list(Bots.objects.filter(user=request.user).values_list('activator', flat=True))
+            # Obtener todas las palabras activadoras de los bots
+            bots = Bots.objects.all()
 
             # Verificar si el mensaje contiene la palabra activadora de algún bot
-            for activator in bots_activators:
-                if activator in message_text:
-                    # Obtener el bot correspondiente a la palabra activadora
-                    try:
-                        bot = Bots.objects.get(activator=activator, user=request.user)
+            for bot in bots:
+                if bot.activator in message_text:
+                    # URL y encabezados de la solicitud a la API de Facebook
+                    url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+                    headers = {
+                        'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+                        'Content-Type': 'application/json'
+                    }
 
-                        # URL y encabezados de la solicitud a la API de Facebook
-                        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
-                        headers = {
-                            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
-                            'Content-Type': 'application/json'
-                        }
+                    # Datos del mensaje a enviar
+                    data = {
+                        "messaging_product": "whatsapp",
+                        "to": wa_id,
+                        "type": "text",
+                        "text": bot.body,  # Mensaje de respuesta del bot
+                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                    }
 
-                        # Datos del mensaje a enviar
-                        data = {
-                            "messaging_product": "whatsapp",
-                            "to": bot.to,
-                            "type": "text",
-                            "text": bot.message_response,  # Mensaje de respuesta del bot
-                            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-                        }
-
-                        # Enviar el mensaje usando la API de Facebook
-                        response = requests.post(url, headers=headers, json=data)
-                        if response.status_code == 200:
-                            # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
-                            response_data = response.json()
-                            message_id = response_data['messages'][0]['id']
-                            mensaje = Task.objects.create(
-                                wamID=message_id,
-                                tittle='',
-                                message=message_text,
-                                status='sent',
-                                created=datetime.now(),
-                                type='text',
-                                datecompleted=None,
-                                dateprogramed=None,
-                                important=False,
-                                to=bot.to,
-                                sender=settings.FACEBOOK_SENDER_NUMBER_1,
-                                groups='',
-                                user=request.user
-                            )
-                        else:
-                            # Ocurrió un error al enviar el mensaje
-                            # Puedes manejar el error de acuerdo a tus necesidades
-                            pass
-
-                    except Bots.DoesNotExist:
+                    # Enviar el mensaje usando la API de Facebook
+                    response = requests.post(url, headers=headers, json=data)
+                    if response.status_code == 200:
+                        # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
+                        response_data = response.json()
+                        message_id = response_data['messages'][0]['id']
+                        mensaje = Task.objects.create(
+                            wamID=message_id,
+                            tittle='',
+                            message=message_text,
+                            status='sent',
+                            created=datetime.now(),
+                            type='text',
+                            datecompleted=None,
+                            dateprogramed=None,
+                            important=False,
+                            to=wa_id,
+                            sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                            groups='',
+                            user=None  # Aquí dejamos el campo 'user' como None ya que no se refiere a ningún usuario específico
+                        )
+                    else:
+                        # Ocurrió un error al enviar el mensaje
+                        # Puedes manejar el error de acuerdo a tus necesidades
                         pass
 
             # Crea una nueva instancia del modelo Task y guarda los datos
