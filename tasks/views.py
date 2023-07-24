@@ -1260,6 +1260,7 @@ def webhook_facebook(request):
         # Verifica si es una respuesta a un mensaje enviado previamente
         if 'statuses' in data['entry'][0]['changes'][0]['value']:
             # Es una respuesta a un mensaje enviado previamente
+            print("Es una actualizacion de estado de un mensaje anterior")
             message_id = data['entry'][0]['changes'][0]['value']['statuses'][0]['id']
             status = data['entry'][0]['changes'][0]['value']['statuses'][0]['status']
 
@@ -1278,6 +1279,7 @@ def webhook_facebook(request):
 
             # Verificar si el ID del mensaje ya ha sido procesado
             if Task.objects.filter(wamID=message_id).exists():
+                print(f"Mensaje {message_id} ya ha sido procesado. Ignorando...")
                 return HttpResponse(status=200)  # Omitir el procesamiento si ya existe
 
             timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
@@ -1286,7 +1288,8 @@ def webhook_facebook(request):
 
             # Obtener todas las palabras activadoras de los bots
             bots = Bots.objects.all()
-            print(wa_id)
+            print(f"Mensaje recibido de: {wa_id}")
+            print(f"Texto del mensaje: {message_text}")
 
             # Verificar si el mensaje contiene la palabra activadora de algún bot
             for bot in bots:
@@ -1306,8 +1309,8 @@ def webhook_facebook(request):
                         "type": "text",
                         "text": { 
                             "body": bot.body
-                            }
                         }
+                    }
 
                     # Enviar el mensaje usando la API de Facebook
                     response = requests.post(url, headers=headers, json=data)
@@ -1354,6 +1357,7 @@ def webhook_facebook(request):
                 user=bot.user
             )
             mensaje.save()
+            print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
 
         return HttpResponse(status=200)
     
