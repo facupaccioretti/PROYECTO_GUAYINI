@@ -1431,7 +1431,7 @@ def send_scheduled_messages_facebook(request):
     now = timezone.now().astimezone(tz)
 
     # Obtiene todas las tareas programadas que aún no se han completado
-    tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
+    tasks = Task.objects.filter(dateprogramed__lte=timezone.now(), datecompleted=None)
     
     # Verifica las fechas y horas programadas y las fechas y horas actuales
     for task in tasks:
