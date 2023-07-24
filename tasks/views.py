@@ -1298,19 +1298,14 @@ def webhook_facebook(request):
                     # Datos del mensaje a enviar
                     data = {
                         "messaging_product": "whatsapp",
-                        "recipient": {
-                            "to": "{wa_id}"  # Identificador de WhatsApp al que se enviará el mensaje
-                        },
-                        "message": {
-                            "content": {
-                                "type": "text",
-                                "text": bot.body  # Mensaje de respuesta del bot
+                        "recipient_type": "individual",
+                        "to": wa_id,
+                        "type": "text",
+                        "text": { 
+                            "preview_url": false,
+                            "body": bot.body
                             }
-                        },
-                        "sender": {
-                            "phone_number": settings.FACEBOOK_SENDER_NUMBER_1
                         }
-                    }
 
                     # Enviar el mensaje usando la API de Facebook
                     response = requests.post(url, headers=headers, json=data)
