@@ -1256,6 +1256,7 @@ def webhook_facebook(request):
     
     elif request.method == 'POST':
         data = json.loads(request.body)
+        print(request.POST)
 
         # Verifica si es una respuesta a un mensaje enviado previamente
         if 'statuses' in data['entry'][0]['changes'][0]['value']:
