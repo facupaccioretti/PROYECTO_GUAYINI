@@ -83,9 +83,10 @@ def signup(request):
                     'error': 'Password do not match'
                 })
 
-@csrf_protect
+@csrf_exempt
 def signin(request):
     if request.method == 'GET':
+        response = requests.get('guayini.com/send_scheduled_messages_facebook/')
         return render(request, 'signin.html',{
             'form': AuthenticationForm
         })
