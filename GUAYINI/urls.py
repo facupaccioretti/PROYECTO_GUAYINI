@@ -83,6 +83,7 @@ urlpatterns = [
     path('bot_detail/<int:bot_id>/', views.bot_detail, name='bot_detail'),
     path('complete_bot/<int:bot_id>/', views.complete_bot, name='complete_bot'),
     path('delete_bot/<int:bot_id>/', views.delete_bot, name='delete_bot'),
-    path('enviar_llamada_alerta/', views.enviar_llamada_alerta, name='enviar_llamada_alerta')
+    path('enviar_llamada_alerta/', views.enviar_llamada_alerta, name='enviar_llamada_alerta'),
+    path('send_scheduled_messages_facebook', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook')
     
 ]

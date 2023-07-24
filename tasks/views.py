@@ -1418,3 +1418,72 @@ def delete_bot(request, bot_id):
 
 
     return redirect('bot_list')  # Redirige de vuelta a la vista "bot_list" después de eliminar el bot
+
+@csrf_exempt
+def send_scheduled_messages_facebook(request):
+    # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
+    tz = pytz.timezone("America/Argentina/Cordoba")
+    
+    print("ejecutando cronjob")
+
+    # Obtener la fecha y hora actual en la zona horaria deseada
+    now = timezone.now().astimezone(tz)
+
+    # Obtiene todas las tareas programadas que aún no se han completado
+    tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
+    
+    # Verifica las fechas y horas programadas y las fechas y horas actuales
+    for task in tasks:
+        task_date = task.dateprogramed.astimezone(tz)
+        print(f"Fecha y hora programada: {task_date}, Fecha y hora actual: {now}")
+
+    # URL y encabezados de la solicitud a la API de Facebook
+    url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+    headers = {
+        'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    # Envía los mensajes de WhatsApp
+    for task in tasks:
+        print(f"Enviando mensaje a: {task.to}")
+
+        # Actualiza la lógica de la construcción del mensaje y el envío a la API de Facebook
+        data = {
+            "messaging_product": "whatsapp",
+            "to": task.to,
+            "type": "template",
+            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+            "template": {
+                "name": "notificaciones_marketing",
+                "language": {
+                    "code": "es_AR"
+                },
+                "components": [
+                    {
+                        "type": "body",
+                        "parameters": [
+                            {
+                                "type": "text",
+                                "text": task.message
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        print('La respuesta de Facebook fue: ')
+        print(response.json())
+
+        if response.status_code == 200:
+            # Marca la tarea como completada
+            task.datecompleted = timezone.now()
+            task.status = 'sent'
+            task.save()
+        else:
+            # Aquí puedes agregar el manejo de errores, por ejemplo, registrar el error en algún lugar
+            pass
+
+    return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
