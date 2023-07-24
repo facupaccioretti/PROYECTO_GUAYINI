@@ -1287,16 +1287,6 @@ def webhook_facebook(request):
             # Verificar si el mensaje contiene la palabra activadora de algún bot
             for bot in bots:
                 if bot.activator in message_text:
-                    User = get_user_model()
-
-                # Verificar si el usuario del bot existe en la base de datos
-                    try:
-                        user = User.objects.get(pk=bot.user_id)
-                    except User.DoesNotExist:
-                    # Si el usuario del bot no existe, puedes decidir qué hacer en este caso
-                    # Por ejemplo, puedes crear un usuario genérico para los bots o manejarlo de otra manera
-                    # Aquí simplemente asignamos None al campo user si el usuario no existe
-                        user = None
                     # URL y encabezados de la solicitud a la API de Facebook
                     url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
                     headers = {
@@ -1307,18 +1297,8 @@ def webhook_facebook(request):
                     # Datos del mensaje a enviar
                     data = {
                         "messaging_product": "whatsapp",
-                        "to": wa_id,
-                        "type": "text",
-                        "text": bot.body,  # Mensaje de respuesta del bot
-                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-                    }
-
-                    # Enviar el mensaje usando la API de Facebook
-                    
-                    response = requests.post(url, headers=headers, json={
-                        "messaging_product": "whatsapp",
                         "recipient": {
-                            "id": wa_id
+                            "wa_id": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
                         },
                         "message": {
                             "type": "text",
@@ -1327,9 +1307,12 @@ def webhook_facebook(request):
                         "sender": {
                             "phone_number": settings.FACEBOOK_SENDER_NUMBER_1
                         }
-                    })
+                    }
+
+                    # Enviar el mensaje usando la API de Facebook
+                    response = requests.post(url, headers=headers, json=data)
                     print('Respuesta de Facebook:')
-                    print(response.text)
+                    print(response.text)    
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
                         response_data = response.json()
