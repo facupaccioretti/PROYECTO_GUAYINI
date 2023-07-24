@@ -1302,7 +1302,6 @@ def webhook_facebook(request):
                         "to": wa_id,
                         "type": "text",
                         "text": { 
-                            "preview_url": false,
                             "body": bot.body
                             }
                         }
