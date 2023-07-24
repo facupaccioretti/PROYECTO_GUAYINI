@@ -1423,15 +1423,8 @@ def delete_bot(request, bot_id):
 @csrf_exempt
 def send_scheduled_messages_facebook(request):
     if request.method == 'GET':
-        # Obtén el token de autenticación del usuario a partir de la URL
-        token = request.GET.get('token')
-
-        # Autentica al usuario a partir del token
-        User = get_user_model()
-        user = User.objects.get(auth_token=token)
-
         # Obtén todas las tareas programadas que aún no se han completado para el usuario autenticado
-        tasks = Task.objects.filter(user=user, dateprogramed__lte=timezone.now(), datecompleted=None)
+        tasks = Task.objects.filter(dateprogramed__lte=timezone.now(), datecompleted=None)
 
         # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
         tz = pytz.timezone("America/Argentina/Cordoba")
