@@ -1407,7 +1407,8 @@ def complete_bot(request, bot_id):
 @login_required
 def delete_bot(request, bot_id):
     bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+    if request.method == 'POST':
+        bot.delete()
 
-    # Lógica para eliminar el bot, si es necesario
 
     return redirect('bot_list')  # Redirige de vuelta a la vista "bot_list" después de eliminar el bot
