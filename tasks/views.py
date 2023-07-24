@@ -1422,69 +1422,111 @@ def delete_bot(request, bot_id):
 
 @csrf_exempt
 def send_scheduled_messages_facebook(request):
-    # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
-    tz = pytz.timezone("America/Argentina/Cordoba")
-    
-    print("ejecutando cronjob")
+    if request.method == 'GET':
+        # Obtén el token de autenticación del usuario a partir de la URL
+        token = request.GET.get('token')
 
-    # Obtener la fecha y hora actual en la zona horaria deseada
-    now = timezone.now().astimezone(tz)
+        # Autentica al usuario a partir del token
+        User = get_user_model()
+        user = User.objects.get(auth_token=token)
 
-    # Obtiene todas las tareas programadas que aún no se han completado
-    tasks = Task.objects.filter(dateprogramed__lte=timezone.now(), datecompleted=None)
-    
-    # Verifica las fechas y horas programadas y las fechas y horas actuales
-    for task in tasks:
-        task_date = task.dateprogramed.astimezone(tz)
-        print(f"Fecha y hora programada: {task_date}, Fecha y hora actual: {now}")
+        # Obtén todas las tareas programadas que aún no se han completado para el usuario autenticado
+        tasks = Task.objects.filter(user=user, dateprogramed__lte=timezone.now(), datecompleted=None)
 
-    # URL y encabezados de la solicitud a la API de Facebook
-    url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
-    headers = {
-        'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
-        'Content-Type': 'application/json'
-    }
+        # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
+        tz = pytz.timezone("America/Argentina/Cordoba")
+        now = timezone.now().astimezone(tz)
 
-    # Envía los mensajes de WhatsApp
-    for task in tasks:
-        print(f"Enviando mensaje a: {task.to}")
+        # URL y encabezados de la solicitud a la API de Facebook
+        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+        headers = {
+            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        }
 
-        # Actualiza la lógica de la construcción del mensaje y el envío a la API de Facebook
-        data = {
-            "messaging_product": "whatsapp",
-            "to": task.to,
-            "type": "template",
-            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-            "template": {
-                "name": "notificaciones_marketing",
-                "language": {
-                    "code": "es_AR"
-                },
-                "components": [
-                    {
-                        "type": "body",
-                        "parameters": [
+        # Envía los mensajes de WhatsApp
+        for task in tasks:
+            to_list = task.to.split(",") if task.to else []
+            groups_list = task.groups.split(",") if task.groups else []
+
+            # Enviar mensajes a números individuales
+            for number in to_list:
+                print(f"Enviando mensaje a: {number}")
+
+                data = {
+                    "messaging_product": "whatsapp",
+                    "to": number,
+                    "type": "template",
+                    "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                    "template": {
+                        "name": "notificaciones_marketing",
+                        "language": {
+                            "code": "es_AR"
+                        },
+                        "components": [
                             {
-                                "type": "text",
-                                "text": task.message
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": task.message
+                                    }
+                                ]
                             }
                         ]
                     }
-                ]
-            }
-        }
+                }
 
-        response = requests.post(url, headers=headers, json=data)
-        print('La respuesta de Facebook fue: ')
-        print(response.json())
+                response = requests.post(url, headers=headers, json=data)
+                print('La respuesta de Facebook fue: ')
+                print(response.json())
 
-        if response.status_code == 200:
-            # Marca la tarea como completada
-            task.datecompleted = timezone.now()
-            task.status = 'sent'
-            task.save()
-        else:
-            # Aquí puedes agregar el manejo de errores, por ejemplo, registrar el error en algún lugar
-            pass
+                if response.status_code == 200:
+                    # Marca la tarea como completada
+                    task.datecompleted = timezone.now()
+                    task.status = 'sent'
+                    task.save()
 
-    return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
+            # Enviar mensajes a grupos
+            for group in groups_list:
+                print(f"Enviando mensaje al grupo: {group}")
+
+                # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
+
+                for number in members:
+                    print(f"Enviando mensaje a {number}")
+
+                    data = {
+                        "messaging_product": "whatsapp",
+                        "to": number,
+                        "type": "template",
+                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                        "template": {
+                            "name": "notificaciones_marketing",
+                            "language": {
+                                "code": "es_AR"
+                            },
+                            "components": [
+                                {
+                                    "type": "body",
+                                    "parameters": [
+                                        {
+                                            "type": "text",
+                                            "text": task.message
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+
+                    response = requests.post(url, headers=headers, json=data)
+                    if response.status_code == 200:
+                        # Marca la tarea como completada
+                        task.datecompleted = timezone.now()
+                        task.status = 'sent'
+                        task.save()
+
+        return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
