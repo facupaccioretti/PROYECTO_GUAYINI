@@ -1299,7 +1299,7 @@ def webhook_facebook(request):
                     data = {
                         "messaging_product": "whatsapp",
                         "recipient": {
-                            "to": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
+                            "to": "{wa_id}"  # Identificador de WhatsApp al que se enviará el mensaje
                         },
                         "message": {
                             "content": {
