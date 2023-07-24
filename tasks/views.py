@@ -86,7 +86,7 @@ def signup(request):
 @csrf_exempt
 def signin(request):
     if request.method == 'GET':
-        response = requests.get('guayini.com/send_scheduled_messages_facebook/')
+        response = requests.get('https://guayini.com/send_scheduled_messages_facebook/')
         return render(request, 'signin.html',{
             'form': AuthenticationForm
         })
