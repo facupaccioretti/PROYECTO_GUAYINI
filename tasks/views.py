@@ -1283,6 +1283,7 @@ def webhook_facebook(request):
 
             # Obtener todas las palabras activadoras de los bots
             bots = Bots.objects.all()
+            print(wa_id)
 
             # Verificar si el mensaje contiene la palabra activadora de algún bot
             for bot in bots:
@@ -1298,7 +1299,7 @@ def webhook_facebook(request):
                     data = {
                         "messaging_product": "whatsapp",
                         "recipient": {
-                            "wa_id": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
+                            "id": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
                         },
                         "message": {
                             "type": "text",
