@@ -1315,7 +1315,20 @@ def webhook_facebook(request):
 
                     # Enviar el mensaje usando la API de Facebook
                     
-                    response = requests.post(url, headers=headers, json=data)
+                    response = requests.post(url, headers=headers, json={
+                        "messaging_product": "whatsapp",
+                        "recipient": {
+                            "id": wa_id
+                        },
+                        "message": {
+                            "type": "text",
+                            "text": bot.body  # Mensaje de respuesta del bot
+                        },
+                        "sender": {
+                            "phone_number": settings.FACEBOOK_SENDER_NUMBER_1
+                        }
+                    })
+                    print('Respuesta de Facebook:')
                     print(response.text)
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
