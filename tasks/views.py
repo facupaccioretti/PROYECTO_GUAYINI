@@ -1299,11 +1299,13 @@ def webhook_facebook(request):
                     data = {
                         "messaging_product": "whatsapp",
                         "recipient": {
-                            "id": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
+                            "wa_id": wa_id  # Identificador de WhatsApp al que se enviará el mensaje
                         },
                         "message": {
-                            "type": "text",
-                            "text": bot.body  # Mensaje de respuesta del bot
+                            "content": {
+                                "type": "text",
+                                "text": bot.body  # Mensaje de respuesta del bot
+                            }
                         },
                         "sender": {
                             "phone_number": settings.FACEBOOK_SENDER_NUMBER_1
@@ -1317,7 +1319,7 @@ def webhook_facebook(request):
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
                         response_data = response.json()
-                        message_id = response_data['messages'][0]['id']
+                        message_id = response_data['message_id']
                         mensaje = Task.objects.create(
                             wamID=message_id,
                             tittle='',
@@ -1331,12 +1333,13 @@ def webhook_facebook(request):
                             to=wa_id,
                             sender=settings.FACEBOOK_SENDER_NUMBER_1,
                             groups='',
-                            user= bot.user   # Aquí dejamos el campo 'user' como None ya que no se refiere a ningún usuario específico
+                            user=bot.user
                         )
                     else:
                         # Ocurrió un error al enviar el mensaje
                         # Puedes manejar el error de acuerdo a tus necesidades
                         pass
+
 
             # Crea una nueva instancia del modelo Task y guarda los datos
             mensaje = Task(
