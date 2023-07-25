@@ -1523,3 +1523,8 @@ def send_scheduled_messages_facebook(request):
         return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+    
+
+@login_required
+def chats(request):
+    return render(request, 'chats.html')
