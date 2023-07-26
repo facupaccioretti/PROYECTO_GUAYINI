@@ -1179,10 +1179,10 @@ def enviar_plantilla_wam_curl(request):
         for grupo in grupos:
             print("Enviando el mensaje: " + mensaje)
             print('Al grupo: ' + grupo)
-
+            whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+            print(f"Grupo encontrado: {whatsapp_group}")
+            for number in whatsapp_group.members.split(","):
             # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
-
-            for number in members:
                 print(f"Enviando mensaje a {number}")
 
                 data = {
