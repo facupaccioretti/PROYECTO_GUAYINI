@@ -1221,7 +1221,7 @@ def enviar_plantilla_wam_curl(request):
                         message=mensaje,
                         status='sent',
                         created=datetime.now(),
-                        type='template',
+                        Type='template',
                         datecompleted=None,
                         dateprogramed=None,
                         important=False,
