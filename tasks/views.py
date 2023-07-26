@@ -1154,6 +1154,117 @@ def enviar_plantilla_wam_curl(request):
 
             if response.status_code == 200:
                 success_count += 1
+            else:
+                error_count += 1
+
+        # Enviar mensajes a grupos
+        for grupo in grupos:
+            print("Enviando el mensaje: " + mensaje)
+            print('Al grupo: ' + grupo)
+            whatsapp_group = WhatsappGroup.objects.get(groupname=grupo.strip())
+            print(f"Grupo encontrado: {whatsapp_group}")
+            for number in whatsapp_group.members.split(","):
+                # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
+                print(f"Enviando mensaje a {number}")
+
+                data = {
+                    "messaging_product": "whatsapp",
+                    "to": number,
+                    "type": "template",
+                    "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                    "template": {
+                        "name": "notificaciones_marketing",
+                        "language": {
+                            "code": "es_AR"
+                        },
+                        "components": [
+                            {
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": mensaje
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+
+                response = requests.post(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    success_count += 1
+                else:
+                    error_count += 1
+
+        return JsonResponse({'mensaje': 'Mensajes enviados exitosamente: {}'.format(success_count)})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+
+
+@csrf_exempt
+def enviar_plantilla_wam_curl1(request):
+    if request.method == 'POST':
+        mensaje = request.POST.get('mensaje', '').strip()
+        numeros_str = request.POST.get('numeros', '').strip()
+        grupos_str = request.POST.get('grupos', '').strip()
+        token = request.POST.get('token', '')
+
+        if not numeros_str and not grupos_str:
+            return JsonResponse({'mensaje': 'Lista de números vacía. Por favor, seleccione un grupo de contactos o un número'}, status=400)
+
+        numeros = numeros_str.split(',') if numeros_str else []
+        grupos = grupos_str.split(',') if grupos_str else []
+
+        success_count = 0
+        error_count = 0
+
+        # Verificar el token de acceso del usuario
+        access_token = get_object_or_404(AccessToken, token=token)
+        user = access_token.user
+
+        # URL y encabezados de la solicitud a la API de Facebook
+        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+        headers = {
+            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        }
+
+        # Enviar mensajes a números individuales
+        for numero in numeros:
+            print("Enviando el mensaje: " + mensaje)
+            print('A los números: ' + numero)
+
+            data = {
+                "messaging_product": "whatsapp",
+                "to": numero,
+                "type": "template",
+                "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                "template": {
+                    "name": "notificaciones_marketing",
+                    "language": {
+                        "code": "es_AR"
+                    },
+                    "components": [
+                        {
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": mensaje
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+
+            response = requests.post(url, headers=headers, json=data)
+            print('La respuesta de Facebook fue: ')
+            print(response.json())
+
+            if response.status_code == 200:
+                success_count += 1
                 # Aquí asignamos los valores correspondientes al mensaje en tu base de datos
                 response_data = response.json()
                 message_id = response_data['messages'][0]['id']
