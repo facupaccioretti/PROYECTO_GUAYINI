@@ -3,6 +3,18 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
+
+class Contact(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='contactos/', blank=True, null=True)
+    number = models.TextField(blank=True)
+    address = models.EmailField(blank = True) 
+    description = models.CharField(max_length=1024)
+    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    def __str__(self):
+        return self.name + '-by ' + self.user.username
+
+
 class Bots(models.Model):
     bot_id = models.AutoField(primary_key=True)  # Campo para el ID único del bot
     tittle = models.CharField(max_length=100)
@@ -46,7 +58,7 @@ class Mail(models.Model):
     tittle = models.CharField(max_length=100)
     message = models.TextField(blank=True)
     subject = models.CharField(max_length=200)
-    adress = models.EmailField(blank = True)
+    address = models.EmailField(blank = True)
     created = models.DateTimeField(auto_now_add=True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
