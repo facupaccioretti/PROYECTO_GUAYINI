@@ -58,7 +58,7 @@ class Mail(models.Model):
     tittle = models.CharField(max_length=100)
     message = models.TextField(blank=True)
     subject = models.CharField(max_length=200)
-    address = models.EmailField(blank = True)
+    adress = models.EmailField(blank = True)
     created = models.DateTimeField(auto_now_add=True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
     important = models.BooleanField(default=False)
