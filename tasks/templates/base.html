@@ -66,7 +66,7 @@
                   <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-whatsapp"></i> Whatsapp</a>
                     <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                      <li><h6 class="dropdown-header">Whatsapp notification options</h6></li>
+                      <li><h6 class="dropdown-header">Notifications options</h6></li>
                       <li><a class="dropdown-item" href="{% url 'tasks' %}">Whatsapp's notifications</a></li>
                       <li><a class="dropdown-item" href="{% url 'create_tasks' %}">Create whatsapp's notifications</a></li>
                     </ul>
@@ -86,11 +86,18 @@
                         </ul>  
                 </li>
                 <li class="nav-item p-4 py-md-1">
+                  <a href="{% url 'notifications' %}" class="nav-link"><i class="bi bi-bell-fill"></i>
+                    Notifications</a>
+                </li>                <li class="nav-item p-4 py-md-1">
+                  <a href="{% url 'notifications' %}" class="nav-link"><i class="bi bi-exclamation-triangle-fill"></i>
+                    Alerts</a>
+                </li>
+                <li class="nav-item p-4 py-md-1">
                   <a href="{% url 'calendar' %}" class="nav-link"><i class="bi bi-calendar3"></i>
                     Calendar</a>
                 </li>
-                <a href="/contacts" class="nav-link"><i class="bi bi-people-fill"></i>
-                  Contacts </a>
+                  <a href="/contacts" class="nav-link"><i class="bi bi-people-fill"></i>
+                    Contacts </a>
                 </li>
                 <li class="nav-item dropend p-4 py-md-1">
                   <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
