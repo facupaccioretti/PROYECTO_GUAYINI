@@ -1702,7 +1702,7 @@ def alerts(request):
 
 
 @login_required
-def alert_list(request):
+def alerts_list(request):
     alerts = Alert.objects.filter(user=request.user)
 
     if request.method == "POST":
@@ -1711,11 +1711,11 @@ def alert_list(request):
             new_alert = form.save(commit=False)
             new_alert.user = request.user
             new_alert.save()
-            return redirect('alert_list')
+            return redirect('alerts_list')
     else:
         form = AlertForm()
 
-    return render(request, 'alert_list.html', {'alerts': alerts, 'form': form})
+    return render(request, 'alerts_list.html', {'alerts': alerts, 'form': form})
 
 
 @login_required
