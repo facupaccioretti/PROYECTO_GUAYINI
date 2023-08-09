@@ -1730,7 +1730,7 @@ def create_alert(request):
             new_alert = form.save(commit=False)
             new_alert.user = request.user
             new_alert.save()
-            return redirect('alert_list')
+            return redirect('alerts_list')
         except ValueError:
             return render(request, 'create_alerts.html', {"form": AlertForm(), "error": "Error creating alert."})
 
