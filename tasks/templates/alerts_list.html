@@ -2,11 +2,13 @@
 
 {% block content %}
 
+<link rel="stylesheet" type="text/css" href="{% static 'css/CreationButton.css' %}" />
+
 <main class="container">
     <div class="row">
         <div class="col-md-6 offset-md-3">
             <!-- Botón para abrir el modal de creación de alerta -->
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createAlertModal">
+            <button type="button" class="btn btn-primary creationButton" data-toggle="modal" data-target="#createAlertModal">
                 Create New Alert
             </button>
             
