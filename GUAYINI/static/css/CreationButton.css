@@ -1,5 +1,5 @@
 /* Estilos para el botón de crear alerta */
-#creationButton {
+.creationButton {
     margin-top: 10px; /* Espacio entre el borde y la navbar */
     display: block; /* Para centrar horizontalmente */
     margin-left: auto;
