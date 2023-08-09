@@ -92,11 +92,13 @@ urlpatterns = [
     path('contacts/', views.contact_list, name='contact_list'),
     path('contacts/<int:contact_id>/', views.contact_detail, name='contact_detail'),
     path('contacts/create/', views.create_contact, name='create_contact'),
+    path('contacts/<int:contact_id>/complete/', views.complete_contact, name='complete_contact'),
     path('contacts/<int:contact_id>/delete/', views.delete_contact, name='delete_contact'),
     path('send_scheduled_messages_facebook/', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook'),
     path('alerts/list/', views.alerts_list, name='alerts_list'),
     path('alerts/<int:alert_id>/', views.alert_detail, name='alert_detail'),
     path('alerts/create/', views.create_alert, name='create_alert'),
+    path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
     path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert')
     
 ]

@@ -1688,6 +1688,14 @@ def create_contact(request):
             return render(request, 'create_contact.html', {"form": ContactForm(), "error": "Error creating contact."})
 
 @login_required
+def complete_contact(request, contact_id):
+    contact = get_object_or_404(Contact, contact_id=contact_id, user=request.user)
+
+    # Lógica para completar el contact, si es necesario
+
+    return redirect('contact_detail', contact_id=contact_id)  # Redirige de vuelta a la vista "contact_detail"
+
+@login_required
 def delete_contact(request, contact_id):
     contact = get_object_or_404(Contact, id=contact_id, user=request.user)
     if request.method == 'POST':
@@ -1745,6 +1753,14 @@ def create_alert(request):
             return redirect('alerts_list')
         except ValueError:
             return render(request, 'create_alerts.html', {"form": AlertForm(), "error": "Error creating alert."})
+
+@login_required
+def complete_alert(request, alert_id):
+    alert = get_object_or_404(Alert, bot_id=alert_id, user=request.user)
+
+    # Lógica para completar el bot, si es necesario
+
+    return redirect('alert_detail', alert_id=alert_id)  # Redirige de vuelta a la vista "alert_detail"
 
 @login_required
 def delete_alert(request, alert_id):
