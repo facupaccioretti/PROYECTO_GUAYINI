@@ -4,6 +4,15 @@ from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
+class Alert(models.Model):
+    tittle = models.CharField(max_length=100)
+    to = models.TextField(blank=True)
+    body = models.TextField()
+    description = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.name + '-by ' + self.user.username
+
 class Contact(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='contactos/', blank=True, null=True)

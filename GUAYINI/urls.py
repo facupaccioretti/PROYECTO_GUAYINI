@@ -28,8 +28,9 @@ urlpatterns = [
     path('signin/', views.signin, name='singin'),
     path('profile/', views.profile, name='profile'),
     path('groups/', views.groups, name='groups'),
-    path('create_groups/', views.create_groups, name='create_groups'),
+    path('groups/create/', views.create_groups, name='create_groups'),
     path('notifications/', views.notifications, name='notifications'),
+    path('alerts/', views.alerts, name='alerts'),
 
     # WHATSAPP GROUPS PATHS
     path('whatsappgroups/', views.whatsappgroups, name='whatsappgroups'),
@@ -92,6 +93,10 @@ urlpatterns = [
     path('contacts/<int:contact_id>/', views.contact_detail, name='contact_detail'),
     path('contacts/create/', views.create_contact, name='create_contact'),
     path('contacts/<int:contact_id>/delete/', views.delete_contact, name='delete_contact'),
-    path('send_scheduled_messages_facebook/', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook')
+    path('send_scheduled_messages_facebook/', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook'),
+    path('alerts/list', views.alert_list, name='alerts_list'),
+    path('alerts/<int:alert_id>/', views.alert_detail, name='alert_detail'),
+    path('alerts/create/', views.create_alert, name='create_alert'),
+    path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert')
     
 ]

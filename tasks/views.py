@@ -5,8 +5,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm
-from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact
+from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, AlertForm
+from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -1695,3 +1695,50 @@ def delete_contact(request, contact_id):
         return redirect('contact_list')
     
     return render(request, 'delete_contact.html', {'contact': contact})
+
+@login_required
+def alerts(request):
+    return render(request, 'alerts.html')
+
+
+@login_required
+def alert_list(request):
+    alerts = Alert.objects.filter(user=request.user)
+    return render(request, 'alert_list.html', {'alerts': alerts})
+
+@login_required
+def alert_detail(request, alert_id):
+    alert = get_object_or_404(Alert, id=alert_id, user=request.user)
+    
+    if request.method == "POST":
+        form = AlertForm(request.POST, instance=alert)
+        if form.is_valid():
+            form.save()
+            return redirect('alert_list')
+    else:
+        form = AlertForm(instance=alert)
+
+    return render(request, 'alert_detail.html', {'alert': alert, 'form': form})
+
+@login_required
+def create_alert(request):
+    if request.method == "GET": 
+        return render(request, 'create_alerts.html', {"form": AlertForm()})
+    else:
+        try:
+            form = AlertForm(request.POST, request.FILES)
+            new_alert = form.save(commit=False)
+            new_alert.user = request.user
+            new_alert.save()
+            return redirect('alert_list')
+        except ValueError:
+            return render(request, 'create_alerts.html', {"form": AlertForm(), "error": "Error creating alert."})
+
+@login_required
+def delete_alert(request, alert_id):
+    alert = get_object_or_404(Alert, id=alert_id, user=request.user)
+    if request.method == 'POST':
+        alert.delete()
+        return redirect('alert_list')
+    
+    return render(request, 'delete_alert.html', {'alert': alert})

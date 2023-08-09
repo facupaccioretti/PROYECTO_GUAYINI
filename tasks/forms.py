@@ -1,7 +1,12 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, Bots, Contact
+from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, Alert, Bots, Contact
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
+
+class AlertForm(forms.ModelForm):
+    class Meta:
+        model = Alert
+        fields = ['tittle', 'to', 'body', 'description']
 
 class ContactForm(forms.ModelForm):
     class Meta:
