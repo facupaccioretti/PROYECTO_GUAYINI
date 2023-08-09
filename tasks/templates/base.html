@@ -71,33 +71,6 @@
                   <a href="/chats" class="nav-link"><i class="bi bi-chat-dots-fill"></i>
                     Chats </a>{% endblock %}
                 </li>
-                <span class="navbar-text p-4 py-md-1">
-                  <i class="bi bi-bell-fill"></i>
-                  Notifications
-                </span>
-                <li class="nav-item dropend p-5 py-md-1">
-                  <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-whatsapp"></i> Whatsapp</a>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                      <li><h6 class="dropdown-header">Notifications options</h6></li>
-                      <li><a class="dropdown-item" href="{% url 'tasks' %}">Whatsapp's notifications</a></li>
-                      <li><a class="dropdown-item" href="{% url 'create_tasks' %}">Create whatsapp's notifications</a></li>
-                    </ul>
-                    <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <i class="bi bi-envelope"></i> Mails</a>
-                      <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                        <li><h6 class="dropdown-header">Email notification options</h6></li>
-                        <li><a class="dropdown-item" href="{% url 'mails' %}">Mail notifications</a></li>
-                        <li><a class="dropdown-item" href="{% url 'create_mails' %}">Create mail notifications</a></li>
-                      </ul>
-                      <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-telephone-outbound"></i> Calls</a>
-                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                          <li><h6 class="dropdown-header">Call notification options</h6></li>
-                          <li><a class="dropdown-item" href="{% url 'phones' %}">Call notifications</a></li>
-                          <li><a class="dropdown-item" href="{% url 'create_phones' %}">Create call notifications</a></li>
-                        </ul>  
-                </li>
                 <li class="nav-item p-4 py-md-1">
                   <a href="{% url 'notifications' %}" class="nav-link"><i class="bi bi-bell-fill"></i>
                     Notifications</a>
