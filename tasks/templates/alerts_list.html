@@ -44,8 +44,22 @@
                 <!-- Formulario de creación de alerta -->
                 <form action="{% url 'alerts_list' %}" method="POST" enctype="multipart/form-data" name="create-alert-form">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <br>
+                    <div class="form-group">
+                        <label for="id_tittle">Título de la Alerta</label>
+                        <input type="text" class="form-control form-control-sm" id="id_tittle" name="tittle" placeholder="Ingrese el título">
+                    </div>
+                    <div class="form-group">
+                        <label for="id_to">Para</label>
+                        <input type="text" class="form-control form-control-sm" id="id_to" name="to" placeholder="Para quién es la alerta">
+                    </div>
+                    <div class="form-group">
+                        <label for="id_body">Cuerpo</label>
+                        <textarea class="form-control form-control-sm" id="id_body" name="body" rows="3" placeholder="Ingrese el cuerpo"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_description">Descripción</label>
+                        <textarea class="form-control form-control-sm" id="id_description" name="description" rows="3" placeholder="Ingrese la descripción"></textarea>
+                    </div>
                     <button type="submit" class="btn btn-primary">
                         Create Alert
                     </button>
