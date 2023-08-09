@@ -39,7 +39,7 @@
             </div>
             <div class="modal-body">
                 <!-- Formulario de creación de alerta -->
-                <form action="{% url 'alert_list' %}" method="POST" enctype="multipart/form-data" name="create-alert-form">
+                <form action="{% url 'alerts_list' %}" method="POST" enctype="multipart/form-data" name="create-alert-form">
                     {% csrf_token %}
                     {{ form.as_p }}
                     <br>
