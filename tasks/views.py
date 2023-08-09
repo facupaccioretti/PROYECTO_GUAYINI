@@ -5,8 +5,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm
-from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots
+from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm
+from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -53,8 +53,14 @@ def create_groups(request):
 def landing(request): 
     return render(request, "landing.html")
 
+def step1(request): 
+    return render(request, "step1.html")
+
 def home(request): 
     return render(request, "home.html")
+
+def notifications(request): 
+    return render(request, "notifications.html")
 
 def signup(request): 
 
@@ -99,12 +105,12 @@ def signin(request):
         })
         else:
             login(request, user)
-            return redirect('calendar')
+            return redirect('home')
 
 @login_required
 def signout(request):
     logout(request)
-    return redirect('home')
+    return redirect('step1')
 
 @login_required
 def profile(request):
@@ -1638,4 +1644,54 @@ def send_scheduled_messages_facebook(request):
 
 @login_required
 def chats(request):
-    return render(request, 'chats.html')
+        # Obtener el usuario actualmente autenticado
+    user = request.user
+
+    # Obtener los contactos del usuario
+    contactos = Contact.objects.filter(user=user)
+
+    mensajes = Task.objects.filter(user=user)
+
+    return render(request, 'chats.html', {'user': user, 'contactos': contactos, "mensajes": mensajes})
+
+@login_required
+def contact_list(request):
+    contacts = Contact.objects.filter(user=request.user)
+    return render(request, 'contact_list.html', {'contacts': contacts})
+
+@login_required
+def contact_detail(request, contact_id):
+    contact = get_object_or_404(Contact, id=contact_id, user=request.user)
+    
+    if request.method == "POST":
+        form = ContactForm(request.POST, instance=contact)
+        if form.is_valid():
+            form.save()
+            return redirect('contact_list')
+    else:
+        form = ContactForm(instance=contact)
+
+    return render(request, 'contact_detail.html', {'contact': contact, 'form': form})
+
+@login_required
+def create_contact(request):
+    if request.method == "GET": 
+        return render(request, 'create_contact.html', {"form": ContactForm()})
+    else:
+        try:
+            form = ContactForm(request.POST, request.FILES)
+            new_contact = form.save(commit=False)
+            new_contact.user = request.user
+            new_contact.save()
+            return redirect('contact_list')
+        except ValueError:
+            return render(request, 'create_contact.html', {"form": ContactForm(), "error": "Error creating contact."})
+
+@login_required
+def delete_contact(request, contact_id):
+    contact = get_object_or_404(Contact, id=contact_id, user=request.user)
+    if request.method == 'POST':
+        contact.delete()
+        return redirect('contact_list')
+    
+    return render(request, 'delete_contact.html', {'contact': contact})

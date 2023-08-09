@@ -1,0 +1,52 @@
+.material-icons {
+    font-size: 180px; /* Ajusta el tamaño según tus necesidades */
+    vertical-align: middle; /* Ajusta la alineación vertical según tus necesidades */
+    overflow: hidden;
+    color: black;
+    
+  }
+
+.material-icons:hover {
+    scale: calc(1.10);
+    color:rgb(40,56,144);
+}
+
+.aNegro {
+    text-decoration: none;
+}
+
+.black-pancho {
+    color: black;
+    overflow: hidden;
+    text-align: center;
+    text-decoration: none;
+}
+
+@media (min-width:992px) {
+.grid3 {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    place-items: center;
+    gap: 10px;
+    padding-top: 10px;
+}}
+
+@media (max-width:991px) {
+    .grid3 {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        place-items: center;
+        gap: 10px;
+        padding-top: 10px;
+    }}
+
+@media (max-width:450px) {
+    .grid3 {
+        display: grid;
+        grid-template-columns: repeat(1,1fr);
+        place-items: center;
+        gap: 10px;
+        padding-top: 10px;
+    }}
+
+

@@ -1,20 +1,68 @@
-{% extends 'base.html' %}
-
-
-{% block content %}
-
-
-<main class="container py-5">
-    <section class="col-md-6 mx-auto">
-        <div class="card card-body">
-            <h1 class="display-1 text-center text-primary"> GUAYINI </h1>
-            <p class="text-center">La mejor forma de programar tus notificaciones</p>
-            <div class="text-center">
-                <a class="btn btn-primary" href="/signin/"> signin</a>
-                <a class="btn btn-primary" href="/signup/"> signup</a>
-            </div>
+{% extends 'base.html' %} {% load static %} {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/linkedbuttons.css' %}" />
+<main class="grid3">
+  <div class="container">
+    <a href="/profile" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">account_circle</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Profile</h5>
         </div>
-    </section>
+      </div>
+    </a>
+  </div>
+  <div class="container">
+    <a href="/chats" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">question_answer</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Chats</h5>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="container">
+    <a href="/notifications" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">notifications</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Notifications</h5>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="container">
+    <a href="/alerts" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">feedback</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Alerts</h5>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="container">
+    <a href="/contacts" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">people</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Contacts</h5>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="container">
+    <a href="/bot_list" class="aNegro">
+      <div class="card text-center">
+        <span class="material-icons">precision_manufacturing</span>
+        <div class="card-body">
+          <h5 class="black-pancho">Bots</h5>
+        </div>
+      </div>
+    </a>
+  </div>
 </main>
 
 {% endblock %}
