@@ -12,6 +12,9 @@
                 <button type="button" class="btn btn-primary creationButton" data-toggle="modal" data-target="#createAlertModal">
                     Create New Alert
                 </button>
+                <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#helpModal">
+                    <i class="bi bi-question-circle"></i>
+                </button>
             </div>
             <div class="card card-body mt-3">
                 <h4 class="text-center display-7 py-5 text-dark">List of Alerts</h4>
@@ -64,6 +67,27 @@
                         Create Alert
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de ayuda -->
+<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">Help and Information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" rows="5" placeholder="Enter help information here"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <!-- Add a button here to save the help information if needed -->
             </div>
         </div>
     </div>
