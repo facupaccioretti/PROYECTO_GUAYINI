@@ -9,10 +9,10 @@
         <div class="col-md-6 offset-md-3">
             <!-- Botón para abrir el modal de creación de alerta -->
             <div class="d-flex justify-content-between mb-3">
-                <button class="creationButton" data-toggle="modal" data-target="#createAlertModal">
+                <button type="button" class="btn btn-primary creationButton" data-toggle="modal" data-target="#createAlertModal">
                     Create New Alert
                 </button>
-                <button class="helpButton" data-toggle="modal" data-target="#helpModal">
+                <button type="button" class="btn btn-primary helpButton" data-toggle="modal" data-target="#helpModal">
                     <i class="bi bi-question-circle"></i>
                 </button>
             </div>
@@ -83,10 +83,10 @@
                 </button>
             </div>
             <div class="modal-body">
-                <textarea class="form-control" rows="5" placeholder="Enter help information here"></textarea>
+                <p>INFORMACIÓN SOBRE LA PÁGINA</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                 <!-- Add a button here to save the help information if needed -->
             </div>
         </div>
