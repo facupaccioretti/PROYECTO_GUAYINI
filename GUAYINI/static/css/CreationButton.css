@@ -1,14 +1,12 @@
 /* Estilos para el botón de crear alerta */
 .creationButton {
     margin-top: 10px; /* Espacio entre el borde y la navbar */
-    display: block; /* Para centrar horizontalmente */
     margin-left: auto;
     margin-right: auto;
 }
 
 .helpButton {
     margin-top: 10px;
-    display: block; /* Para centrar horizontalmente */
     margin-left: auto;
     margin-right: auto;
 }
