@@ -8,4 +8,13 @@
 
 .helpButton {
     margin-top: 10px;
+    display: block; /* Para centrar horizontalmente */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.divButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
