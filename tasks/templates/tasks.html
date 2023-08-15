@@ -35,50 +35,49 @@
     </div>
   </main>
 <!-- Modal de creación de Whatsapp Notification -->
+<!-- Modal de creación de Whatsapp Notification -->
 <div class="modal fade" id="createWhatsappNotificationModal" tabindex="-1" role="dialog" aria-labelledby="createWhatsappNotificationModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" id="createWhatsappNotificationModalLabel">Create New Whatsapp Notification</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-              </button>
-          </div>
-          <div class="modal-body">
-              <!-- Formulario de creación de Whatsapp Notification -->
-              <form action="{% url 'tasks' %}" method="POST" enctype="multipart/form-data" name="create-WhatsappNotification-form">
-                  {% csrf_token %}
-                  <div class="form-group">
-                      <label for="id_tittle">Título de la Notificacion</label>
-                      <input type="text" class="form-control form-control-sm" id="id_tittle" name="tittle" placeholder="Ingrese el título">
-                  </div>
-                  <div class="form-group">
-                      <label for="id_to">To:</label>
-                      <input type="text" class="form-control form-control-sm" id="id_to" name="to" placeholder="Ingrese los números a los cuales enviar las notificaciones">
-                  </div>
-                  <div class="form-group">
-                      <label for="id_body">Mensaje</label>
-                      <textarea class="form-control form-control-sm" id="id_message" name="message" rows="3" placeholder="Ingrese el cuerpo del mensaje"></textarea>
-                  </div>
-                  <div class="form-group">
-                      <label for="id_description">Grupos</label>
-                      <textarea class="form-control form-control-sm" id="id_groups" name="groups" rows="3" placeholder="Ingrese los grupos"></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="id_dateprogramed">Fecha y Hora Programadas</label>
-                    <div class="input-group date" id="datetimepickerContainer" data-target-input="nearest">
-                        <input type="text" class="form-control datetimepicker-input" data-target="#datetimepicker" name="dateprogramed" />
-                        <div class="input-group-append" data-target="#datetimepickerContainer" data-toggle="datetimepicker">
-                            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-                        </div>
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-primary">
-                      Create Whatsapp Notification
-                  </button>
-              </form>
-          </div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createWhatsappNotificationModalLabel">Create New Whatsapp Notification</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
+      <div class="modal-body">
+        <!-- Formulario de creación de Whatsapp Notification -->
+        <form action="{% url 'tasks' %}" method="POST" enctype="multipart/form-data" name="create-WhatsappNotification-form">
+          {% csrf_token %}
+          
+          <label for="id_tittle">Tittle:</label>
+          <input type="text" name="tittle" class="form-control" placeholder="Write a tittle" maxlength="100" required="">
+          
+          <label for="id_message">Message:</label>
+          <textarea name="message" cols="40" rows="10" class="form-control" placeholder="Write your message"></textarea>
+          
+          <label for="id_to">To:</label>
+          <textarea name="to" cols="40" rows="10" class="form-control" placeholder="Write your contact"></textarea>
+          
+          <label for="id_groups">Groups:</label>
+          <textarea name="groups" cols="40" rows="10" class="form-control" placeholder="Write your contact group"></textarea>
+          
+          <label for="id_dateprogramed">Dateprogramed:</label>
+          <div class="input-group">
+            <input type="text" id="id_dateprogramed" name="dateprogramed" class="form-control datetimepicker-input" data-toggle="datetimepicker" data-target="#datetimepickerContainer" required="">
+            <div class="input-group-append" data-target="#datetimepickerContainer" data-toggle="datetimepicker">
+              <div class="input-group-text"><i class="bi bi-calendar"></i></div>
+            </div>
+          </div>
+          
+          <label for="id_important">Important:</label>
+          <input type="checkbox" name="important" class="form-check-input m-auto" id="id_important">
+          
+          <br>
+          <button type="submit" class="btn btn-primary">Create Whatsapp Notification</button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
