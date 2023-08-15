@@ -65,8 +65,13 @@
                       <textarea class="form-control form-control-sm" id="id_groups" name="groups" rows="3" placeholder="Ingrese los grupos"></textarea>
                   </div>
                   <div class="form-group">
-                    <label for="id_dateprogramed">Fecha programada</label>
-                    <input type="text" class="form-control form-control-sm datetimepicker-input" id="id_dateprogramed" name="dateprogramed" data-toggle="datetimepicker" data-target="#id_dateprogramed" placeholder="Seleccione la fecha programada">
+                    <label for="id_dateprogramed">Fecha y Hora Programadas</label>
+                    <div class="input-group date" data-provide="datepicker">
+                        <input type="text" class="form-control form-control-sm datetimepicker-input" id="id_dateprogramed" name="dateprogramed">
+                        <div class="input-group-addon">
+                            <span class="glyphicon glyphicon-th"></span>
+                        </div>
+                    </div>
                   </div>
                   <button type="submit" class="btn btn-primary">
                       Create Whatsapp Notification
@@ -98,7 +103,16 @@
   </div>
 </div>
 
-  
+
+<script>
+  $(function () {
+      $('.datetimepicker-input').datepicker({
+          format: 'yyyy-mm-dd hh:ii',  // Ajusta el formato según tus necesidades
+          autoclose: true,
+          todayHighlight: true
+      });
+  });
+</script>
 
 
 {% endblock %} 
