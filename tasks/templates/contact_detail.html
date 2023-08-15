@@ -1,6 +1,4 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 
 <main class="container">
   <div class="row">
@@ -9,26 +7,19 @@
       {{ error }}
       <div>
         <form method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
-          {{ form.as_p }}
-  
-          <button class="btn btn-primary">
-            Update
-          </button>
+          {% csrf_token %} {{ form.as_p }}
+
+          <button class="btn btn-primary">Update</button>
         </form>
-  
+
         <form action="{% url 'complete_contact' contact.id %}" method="POST">
           {% csrf_token %}
-          <button class="btn btn-success">
-            Complete
-          </button>
+          <button class="btn btn-success">Complete</button>
         </form>
-  
+
         <form action="{% url 'delete_contact' contact.id %}" method="POST">
           {% csrf_token %}
-          <button class="btn btn-danger">
-            Delete
-          </button>
+          <button class="btn btn-danger">Delete</button>
         </form>
       </div>
     </div>

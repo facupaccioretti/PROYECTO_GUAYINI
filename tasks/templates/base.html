@@ -9,7 +9,7 @@
     <title>GUAYINI</title>
         
     <link rel="stylesheet" type="text/css" href="{% static 'css/CreationButton.css' %}" />
-
+    <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}" />
     <!-- Cargar jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -43,13 +43,22 @@
 </head>
 <body class="bg-image " style="background-color: #EBEFF2;">
     <nav class="navbar navbar-dark" style="background-color: #FFFFFF ">
-        <div class="container-fluid">
-          <button class="navbar-toggler p-3 border-dark" style="background-color: #EBEFF2;" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral">
-          <span class="navbar-toggler-icon "></span>
-          </button>
-          <a class="navbar-brand" href="/">
-            <img src="/static/images/LOGO GUAYINI ESCRITO FONDO TRANSPARENTE.png" width="200" height="60" class="d-inline-block align-top" alt="Logo de mi sitio web">
-          </a>            
+      <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div>
+                <button class="navbar-toggler p-3 border-dark" style="background-color: #EBEFF2;" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#menuLateral">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-light btn-lg border-dark ml-5" type="button" onclick="window.location.href='/home'">
+                    <i class="bi bi-house-fill"></i>
+                </button>
+            </div>
+            <a class="navbar-brand" href="/">
+                <img src="/static/images/LOGO GUAYINI ESCRITO FONDO TRANSPARENTE.png" width="200" height="60"
+                    class="d-inline-block align-top" alt="Logo de mi sitio web">
+            </a>  
           <section class="offcanvas offcanvas-start bg-dark" id="menuLateral" tabindex="-1" >
             <div class="offcanvas-header" data-bs-theme="dark">
               <img src="/static/images/LOGO GUAYINI ESCRITO FONDO TRANSPARENTE.png" width="220" height="60" class="d-inline-block align-top" alt="Logo de mi sitio web">
@@ -86,6 +95,7 @@
                   <a href="{% url 'calendar' %}" class="nav-link"><i class="bi bi-calendar3"></i>
                     Calendar</a>
                 </li>
+                <li class="nav-item p-4 py-md-1">
                   <a href="/contacts" class="nav-link"><i class="bi bi-people-fill"></i>
                     Contacts </a>
                 </li>

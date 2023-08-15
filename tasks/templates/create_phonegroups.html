@@ -1,21 +1,16 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 
 <main>
-    <div class="row" >
-        <div class="col-md-4 offset-md-4 mt-3 mb-3">
-            <form action="/create_phonegroups/" method="POST" class="card card-body">
-                <h5>Add phone groups</h5>   
-                {% csrf_token %}
-                {{phoneform}}
-                <br>
-                <button class="btn btn-primary">
-                    Submit
-                </button>
-            </form>
-        </div>
+  <div class="row">
+    <div class="col-md-4 offset-md-4 mt-3 mb-3">
+      <form action="/create_phonegroups/" method="POST" class="card card-body">
+        <h5>Add phone groups</h5>
+        {% csrf_token %} {{phoneform}}
+        <br />
+        <button class="btn btn-primary">Submit</button>
+      </form>
     </div>
+  </div>
 </main>
 
 {% endblock %}

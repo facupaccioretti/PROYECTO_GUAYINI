@@ -1,24 +1,23 @@
-{% extends 'base.html' %}
-
-
-{% block content %}
-
+{% extends 'base.html' %} {% block content %}
 
 <main class="container py-5">
-    <div class="col-md-6 offset-md-3">
-        <h1 class="display-1 text-center"> PHONE GROUPS </h1>     
-    
-      <ul class="list-group">
-        {% for phonegroups in phonegroups %}
-        <a class="list-group-item" href="{% url 'phonegroup_detail' phonegroups.id %}">
-          <header class="d-flex justify-content-between">
-            <h2 class="fw-bold text-primary">{{phonegroups.groupname}}</h2>
-            <p>{{phonegroups.description}}</p>
-          </header>
-        </a>
-        {% endfor %}
-      </ul>
-    </div>
+  <div class="col-md-6 offset-md-3">
+    <h1 class="display-1 text-center">PHONE GROUPS</h1>
+
+    <ul class="list-group">
+      {% for phonegroups in phonegroups %}
+      <a
+        class="list-group-item"
+        href="{% url 'phonegroup_detail' phonegroups.id %}"
+      >
+        <header class="d-flex justify-content-between">
+          <h2 class="fw-bold text-primary">{{phonegroups.groupname}}</h2>
+          <p>{{phonegroups.description}}</p>
+        </header>
+      </a>
+      {% endfor %}
+    </ul>
+  </div>
 </main>
 
 {% endblock %}

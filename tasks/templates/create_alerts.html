@@ -1,21 +1,22 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 
 <main>
-    <div class="row">
-        <div class="col-md-6 offset-md-3 mt-3 mb-3">
-            <form action="{% url 'create_alert' %}" method="POST" enctype="multipart/form-data" class="card card-body" name="contact-form">
-                <h5>Create New Alert</h5>
-                {% csrf_token %}
-                {{ form.as_p }}
-                <br>
-                <button type="submit" class="btn btn-primary">
-                    Create Alert
-                </button>
-            </form>
-        </div>
+  <div class="row">
+    <div class="col-md-6 offset-md-3 mt-3 mb-3">
+      <form
+        action="{% url 'create_alert' %}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="card card-body"
+        name="contact-form"
+      >
+        <h5>Create New Alert</h5>
+        {% csrf_token %} {{ form.as_p }}
+        <br />
+        <button type="submit" class="btn btn-primary">Create Alert</button>
+      </form>
     </div>
+  </div>
 </main>
 
 {% endblock %}

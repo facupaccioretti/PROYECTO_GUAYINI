@@ -1,31 +1,29 @@
-{% extends 'base.html' %}
-
-{% block content %}
-
+{% extends 'base.html' %} {% block content %}
 
 <main class="container">
-    <div class="row">
-      <div class="col-md-6 offset-md-3">
-        <div class="card card-body mt-3">
-          <h4 class=" text-center display-7 py-5">Programed phone notifications</h4>
-          <ul class="list-group">
-              {% for phone in phones %}
-              <a class="list-group-item" href="{% url 'phone_detail' phone.id %}">
-                <header class="d-flex justify-content-between">
-                  {% if task.important %}
-                  <h5 class="fw-bold text-success display-9">{{phone.tittle}}</h5>
-                  {% else %} 
-                  <h5 class="fw-bold text-primary display-9">{{phone.tittle}}</h5>
-                  {% endif %}
-                  <p>{{phone.message}}</p>
-                </header>
-              </a>
-              {% endfor %}
-            </ul>
-        </div>
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card card-body mt-3">
+        <h4 class="text-center display-7 py-5">
+          Programed phone notifications
+        </h4>
+        <ul class="list-group">
+          {% for phone in phones %}
+          <a class="list-group-item" href="{% url 'phone_detail' phone.id %}">
+            <header class="d-flex justify-content-between">
+              {% if task.important %}
+              <h5 class="fw-bold text-success display-9">{{phone.tittle}}</h5>
+              {% else %}
+              <h5 class="fw-bold text-primary display-9">{{phone.tittle}}</h5>
+              {% endif %}
+              <p>{{phone.message}}</p>
+            </header>
+          </a>
+          {% endfor %}
+        </ul>
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
-
-{% endblock %} 
+{% endblock %}
