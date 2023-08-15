@@ -127,8 +127,17 @@ def profile(request):
 @login_required       
 def tasks(request):
     tasks = Task.objects.filter(user=request.user)
-    
-    return render(request, 'tasks.html', {'tasks': tasks})
+    if request.method == "POST":
+        form = TaskForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_task = form.save(commit=False)
+            new_task.user = request.user
+            new_task.save()
+            return redirect('tasks')
+    else:
+        form = TaskForm()
+    return render(request, 'tasks.html', {'tasks': tasks, 'form': form})
+
 
 @login_required
 def create_task(request):
