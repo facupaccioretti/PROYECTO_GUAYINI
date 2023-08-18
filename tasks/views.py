@@ -1383,47 +1383,31 @@ def webhook_facebook(request):
             return HttpResponse(status=403)
     
     elif request.method == 'POST':
-        data = json.loads(request.body)
-        print("Notificación de Facebook recibida:")
-        print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
+            data = json.loads(request.body)
+            print("Notificación de Facebook recibida:")
+            print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
 
-        # Verifica si es una respuesta a un mensaje enviado previamente
-        if 'statuses' in data['entry'][0]['changes'][0]['value']:
-            # Es una respuesta a un mensaje enviado previamente
-            print("Es una actualización de estado de un mensaje anterior")
-            message_id = data['entry'][0]['changes'][0]['value']['statuses'][0]['id']
-            status = data['entry'][0]['changes'][0]['value']['statuses'][0]['status']
+            if 'messages' in data['entry'][0]['changes'][0]['value']:
+                # Es una notificación de un nuevo mensaje recibido
+                wa_id = data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+                message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
+                timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
+                message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+                status = 'received'
 
-            # Busca el mensaje en tu base de datos usando el campo wamID
-            try:
-                mensaje = Task.objects.get(wamID=message_id)
-                mensaje.status = status
-                mensaje.save()
-            except Task.DoesNotExist:
-                # Maneja el caso si el mensaje no existe en la base de datos
-                pass
-        else:
-            # Es una notificación de un nuevo mensaje recibido
-            wa_id = data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
-            message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
+                # Obtener todas las palabras activadoras de los bots
+                bots = Bots.objects.all()
+                print(f"Mensaje recibido de: {wa_id}")
+                print(f"Texto del mensaje: {message_text}")
 
-            # Verificar si el ID del mensaje ya ha sido procesado
-            if Task.objects.filter(wamID=message_id).exists() or message_id in processed_messages:
-                print(f"Mensaje {message_id} ya ha sido procesado. Ignorando...")
-                return HttpResponse(status=200)  # Omitir el procesamiento si ya existe
+                # Verificar si el mensaje contiene la palabra activadora de algún bot
+                bot_triggered = None
+                for bot in bots:
+                    if bot.activator in message_text:
+                        bot_triggered = bot
+                        break
 
-            timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
-            message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
-            status = 'received'
-
-            # Obtener todas las palabras activadoras de los bots
-            bots = Bots.objects.all()
-            print(f"Mensaje recibido de: {wa_id}")
-            print(f"Texto del mensaje: {message_text}")
-
-            # Verificar si el mensaje contiene la palabra activadora de algún bot
-            for bot in bots:
-                if bot.activator in message_text:
+                if bot_triggered:
                     # URL y encabezados de la solicitud a la API de Facebook
                     url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
                     headers = {
@@ -1437,8 +1421,8 @@ def webhook_facebook(request):
                         "recipient_type": "individual",
                         "to": wa_id,
                         "type": "text",
-                        "text": { 
-                            "body": bot.body
+                        "text": {
+                            "body": bot_triggered.body
                         }
                     }
 
@@ -1464,38 +1448,39 @@ def webhook_facebook(request):
                                 to=wa_id,
                                 sender=settings.FACEBOOK_SENDER_NUMBER_1,
                                 groups='',
-                                user=bot.user
+                                user=bot_triggered.user
                             )
-                            processed_messages.add(message_id)
                     else:
                         # Ocurrió un error al enviar el mensaje
                         # Puedes manejar el error de acuerdo a tus necesidades
                         pass
 
-            # Crea una nueva instancia del modelo Task y guarda los datos
-            mensaje = Task(
-                wamID=message_id,
-                tittle='',
-                message=message_text,
-                status=status,
-                created=datetime.fromtimestamp(timestamp),
-                Type='',
-                datecompleted=None,
-                dateprogramed=None,
-                important=False,
-                to=wa_id,
-                sender='',
-                groups='',
-                user=bot.user
-            )
-            mensaje.save()
-            print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
+                # Crea una nueva instancia del modelo Task y guarda los datos
+                mensaje = Task(
+                    wamID=message_id,
+                    tittle='',
+                    message=message_text,
+                    status=status,
+                    created=datetime.fromtimestamp(timestamp),
+                    Type='',
+                    datecompleted=None,
+                    dateprogramed=None,
+                    important=False,
+                    to=wa_id,
+                    sender='',
+                    groups='',
+                    user=bot_triggered.user if bot_triggered else None
+                )
+                mensaje.save()
+                print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
 
-        return HttpResponse(status=200)
-    
+            return HttpResponse(status=200)
+        
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
+
+
 @login_required
 def bot_list(request):
     bots = Bots.objects.filter(user=request.user)
