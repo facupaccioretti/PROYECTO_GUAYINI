@@ -1366,6 +1366,7 @@ def enviar_plantilla_wam_curl1(request):
 
 @csrf_exempt
 def webhook_facebook(request):
+    processed_messages = set()
     if request.method == 'GET':
         # VERIFICACION FACEBOOK
         # Obtiene los parámetros de consulta de la URL
@@ -1408,7 +1409,7 @@ def webhook_facebook(request):
             message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
 
             # Verificar si el ID del mensaje ya ha sido procesado
-            if Task.objects.filter(wamID=message_id).exists():
+            if Task.objects.filter(wamID=message_id).exists() or message_id in processed_messages:
                 print(f"Mensaje {message_id} ya ha sido procesado. Ignorando...")
                 return HttpResponse(status=200)  # Omitir el procesamiento si ya existe
 
@@ -1445,7 +1446,8 @@ def webhook_facebook(request):
                     # Enviar el mensaje usando la API de Facebook
                     response = requests.post(url, headers=headers, json=data)
                     print('Respuesta de Facebook:')
-                    print(response.text)    
+                    print(response.text)
+                    processed_messages.add(message_id)
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
                         response_data = response.json()
