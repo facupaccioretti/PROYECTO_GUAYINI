@@ -1612,9 +1612,10 @@ def send_scheduled_messages_facebook(request):
             for group in groups_list:
                 print(f"Enviando mensaje al grupo: {group}")
 
-                # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
+                # Obtener los miembros del grupo
+                members = group.members.split(",") if group.members else []
 
-                for number in group.members:
+                for number in members:
                     print(f"Enviando mensaje a {number}")
 
                     data = {
