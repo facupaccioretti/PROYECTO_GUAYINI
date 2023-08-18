@@ -1612,7 +1612,7 @@ def send_scheduled_messages_facebook(request):
             for group in groups_list:
                 print(f"Enviando mensaje al grupo: {group}")
                 try:
-                    group_obj = Group.objects.get(groupname=group)
+                    group_obj = WhatsappGroup.objects.get(groupname=group)
                     members = group_obj.members.split(",") if group_obj.members else []
 
                     for number in members:
@@ -1649,7 +1649,7 @@ def send_scheduled_messages_facebook(request):
                             task.status = 'sent'
                             task.save()
                 except Group.DoesNotExist:
-                    print(f"El grupo {group} no existe para el usuario actual.")
+                    print(f"El grupo {group} no existe.")
         return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
