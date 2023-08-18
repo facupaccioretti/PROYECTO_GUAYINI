@@ -1385,7 +1385,7 @@ def webhook_facebook(request):
         data = json.loads(request.body)
         print(request.POST)
         print("Notificación de Facebook recibida:")
-        print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
+    print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
 
         # Verifica si es una respuesta a un mensaje enviado previamente
         if 'statuses' in data['entry'][0]['changes'][0]['value']:
@@ -1614,7 +1614,7 @@ def send_scheduled_messages_facebook(request):
 
                 # Obtener los miembros del grupo (puedes implementar tu lógica aquí)
 
-                for number in members:
+                for number in group.members:
                     print(f"Enviando mensaje a {number}")
 
                     data = {
