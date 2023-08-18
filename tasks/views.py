@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, AlertForm
-from .models import Mail, Task, Phone, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert
+from .models import Mail, Task, Phone, Group, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -1611,44 +1611,45 @@ def send_scheduled_messages_facebook(request):
             # Enviar mensajes a grupos
             for group in groups_list:
                 print(f"Enviando mensaje al grupo: {group}")
+                try:
+                    group_obj = Group.objects.get(groupname=group, user=request.user)
+                    members = group_obj.members.split(",") if group_obj.members else []
 
-                # Obtener los miembros del grupo
-                members = group.members.split(",") if group.members else []
+                    for number in members:
+                        print(f"Enviando mensaje a {number}")
 
-                for number in members:
-                    print(f"Enviando mensaje a {number}")
-
-                    data = {
-                        "messaging_product": "whatsapp",
-                        "to": number,
-                        "type": "template",
-                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-                        "template": {
-                            "name": "notificaciones_marketing",
-                            "language": {
-                                "code": "es_AR"
-                            },
-                            "components": [
-                                {
-                                    "type": "body",
-                                    "parameters": [
-                                        {
-                                            "type": "text",
-                                            "text": task.message
-                                        }
-                                    ]
-                                }
-                            ]
+                        data = {
+                            "messaging_product": "whatsapp",
+                            "to": number,
+                            "type": "template",
+                            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                            "template": {
+                                "name": "notificaciones_marketing",
+                                "language": {
+                                    "code": "es_AR"
+                                },
+                                "components": [
+                                    {
+                                        "type": "body",
+                                        "parameters": [
+                                            {
+                                                "type": "text",
+                                                "text": task.message
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
                         }
-                    }
 
-                    response = requests.post(url, headers=headers, json=data)
-                    if response.status_code == 200:
-                        # Marca la tarea como completada
-                        task.datecompleted = timezone.now()
-                        task.status = 'sent'
-                        task.save()
-
+                        response = requests.post(url, headers=headers, json=data)
+                        if response.status_code == 200:
+                            # Marca la tarea como completada
+                            task.datecompleted = timezone.now()
+                            task.status = 'sent'
+                            task.save()
+                except Group.DoesNotExist:
+                    print(f"El grupo {group} no existe para el usuario actual.")
         return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
