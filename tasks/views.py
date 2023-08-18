@@ -1367,16 +1367,16 @@ def enviar_plantilla_wam_curl1(request):
 @csrf_exempt
 def webhook_facebook(request):
     processed_messages = set()
+    
     if request.method == 'GET':
         # VERIFICACION FACEBOOK
         # Obtiene los parámetros de consulta de la URL
-        hub_mode = request.GET.get('hub.mode')
-        hub_challenge = request.GET.get('hub.challenge')
         hub_verify_token = request.GET.get('hub.verify_token')
 
         # Verifica el valor de hub.verify_token con tu cadena de token configurada
         if hub_verify_token == 'guayini_token_aguantebelgrano':
             # Responde con el valor hub.challenge para completar la verificación
+            hub_challenge = request.GET.get('hub.challenge')
             return HttpResponse(hub_challenge, content_type='text/plain')
         else:
             # Si el token de verificación no coincide, responde con un código de estado 403 (Prohibido)
@@ -1384,14 +1384,13 @@ def webhook_facebook(request):
     
     elif request.method == 'POST':
         data = json.loads(request.body)
-        print(request.POST)
         print("Notificación de Facebook recibida:")
         print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
 
         # Verifica si es una respuesta a un mensaje enviado previamente
         if 'statuses' in data['entry'][0]['changes'][0]['value']:
             # Es una respuesta a un mensaje enviado previamente
-            print("Es una actualizacion de estado de un mensaje anterior")
+            print("Es una actualización de estado de un mensaje anterior")
             message_id = data['entry'][0]['changes'][0]['value']['statuses'][0]['id']
             status = data['entry'][0]['changes'][0]['value']['statuses'][0]['status']
 
@@ -1447,26 +1446,27 @@ def webhook_facebook(request):
                     response = requests.post(url, headers=headers, json=data)
                     print('Respuesta de Facebook:')
                     print(response.text)
-                    processed_messages.add(message_id)
                     if response.status_code == 200:
                         # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
                         response_data = response.json()
-                        message_id = response_data['message_id']
-                        mensaje = Task.objects.create(
-                            wamID=message_id,
-                            tittle='',
-                            message=message_text,
-                            status='sent',
-                            created=datetime.now(),
-                            Type='text',
-                            datecompleted=None,
-                            dateprogramed=None,
-                            important=False,
-                            to=wa_id,
-                            sender=settings.FACEBOOK_SENDER_NUMBER_1,
-                            groups='',
-                            user=bot.user
-                        )
+                        sent_message_id = response_data.get('message_id', None)
+                        if sent_message_id:
+                            mensaje = Task.objects.create(
+                                wamID=sent_message_id,
+                                tittle='',
+                                message=message_text,
+                                status='sent',
+                                created=datetime.now(),
+                                Type='text',
+                                datecompleted=None,
+                                dateprogramed=None,
+                                important=False,
+                                to=wa_id,
+                                sender=settings.FACEBOOK_SENDER_NUMBER_1,
+                                groups='',
+                                user=bot.user
+                            )
+                            processed_messages.add(message_id)
                     else:
                         # Ocurrió un error al enviar el mensaje
                         # Puedes manejar el error de acuerdo a tus necesidades
@@ -1496,7 +1496,6 @@ def webhook_facebook(request):
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
-
 @login_required
 def bot_list(request):
     bots = Bots.objects.filter(user=request.user)
