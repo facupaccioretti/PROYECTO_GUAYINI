@@ -1384,6 +1384,8 @@ def webhook_facebook(request):
     elif request.method == 'POST':
         data = json.loads(request.body)
         print(request.POST)
+        print("Notificación de Facebook recibida:")
+        print(json.dumps(data, indent=4))  # Imprimir con formato para una visualización más clara
 
         # Verifica si es una respuesta a un mensaje enviado previamente
         if 'statuses' in data['entry'][0]['changes'][0]['value']:
