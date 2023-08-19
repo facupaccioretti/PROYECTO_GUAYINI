@@ -99,6 +99,7 @@ urlpatterns = [
     path('alerts/<int:alert_id>/', views.alert_detail, name='alert_detail'),
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
-    path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert')
+    path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
+    path('send_whatsapp/', views.send_whatsapp, name='send_whatsapp')
     
 ]

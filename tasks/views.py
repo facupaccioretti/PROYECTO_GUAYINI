@@ -32,6 +32,7 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from heyoo import WhatsApp
 
 
 # Agregar esta línea para definir el timezone por defecto
@@ -1770,3 +1771,13 @@ def delete_alert(request, alert_id):
         return redirect('alert_list')
     
     return render(request, 'delete_alert.html', {'alert': alert})
+
+@login_required
+def send_whatsapp(request):
+    messenger = WhatsApp(settings.FACEBOOK_AUTH_TOKEN,settings.FACEBOOK_SENDER_NUMBER_1)
+    # Numero de telefono a donde enviar el mensaje - por ahora harcodeado 
+    to = 543512594546
+    mensaje = request.POST.get('messageToSend')
+    # For sending a Text message
+    messenger.send_message(mensaje, str(to))
+    return render(request, 'chats.html')
