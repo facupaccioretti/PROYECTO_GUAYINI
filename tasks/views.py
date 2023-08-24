@@ -1421,6 +1421,7 @@ def webhook_facebook(request):
                             })
 
                         interactive_message = {
+                            "messaging_product": "whatsapp",
                             "recipient_type": "individual",
                             "to": wa_id,
                             "type": "interactive",
