@@ -1392,8 +1392,13 @@ def webhook_facebook(request):
                 wa_id = data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
                 message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
                 timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
-                message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+                message_type = data['entry'][0]['changes'][0]['value']['messages'][0]['type']
                 status = 'received'
+
+                if message_type == 'text':
+                    message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+                elif message_type == 'interactive':
+                    message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['button_reply']['title']
 
                 # Obtener todas las palabras activadoras de los bots
                 bots = Bots.objects.all()
