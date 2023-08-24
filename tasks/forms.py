@@ -17,7 +17,7 @@ class ContactForm(forms.ModelForm):
 class BotForm(forms.ModelForm):
     class Meta:
         model = Bots
-        fields = ['tittle', 'activator', 'body']
+        fields = ['tittle', 'activator', 'body', 'response_buttons']
 
 class TaskForm(forms.ModelForm):
     class Meta:

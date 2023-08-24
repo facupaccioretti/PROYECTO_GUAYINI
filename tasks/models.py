@@ -29,6 +29,7 @@ class Bots(models.Model):
     tittle = models.CharField(max_length=100)
     activator = models.CharField(max_length=255)  # El contenido que activa al bot
     body = models.TextField()
+    response_buttons = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
