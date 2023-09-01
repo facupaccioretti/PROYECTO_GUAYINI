@@ -83,7 +83,7 @@ body {
   height: 60px;
   width: 100%;
   background-color: #eee;
-  z-index: 1000;
+  
 }
 
 .heading-avatar {
@@ -97,6 +97,55 @@ body {
   height: 40px;
   width: 40px;
 }
+
+.main-container {
+  display: grid;
+  grid-template-columns: 2.2fr 4fr;
+  width: 80vw;
+}
+
+.room-sidebar {
+  justify-self: left;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 59px 89px 50px repeat(auto-fit, minmax(73px, 73px));
+  width:100%;
+  border-right:.75px solid #CCC;
+}
+
+.room-sidebar-header {
+  background-color: #f0f0f0ff;
+  display: grid;
+  grid-template-columns: 48px auto 37px 37px 37px;
+  grid-template-areas: "sb-avatar . sb-status sb-new-chat sb-menu" ;
+  gap: 1rem;
+  align-items:center;
+  padding:.5rem;
+}
+
+
+.sb-avatar {
+  grid-area: sb-avatar;
+}
+
+.sb-avatar img {
+  width:40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.sb-status {
+  grid-area: sb-status;
+}
+
+.sb-new-chat {
+  grid-area: sb-new-chat;
+}
+
+.sb-menu {
+  grid-area: sb-menu;
+}
+
 
 .heading-name {
   padding: 0 !important;
