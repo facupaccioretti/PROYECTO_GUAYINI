@@ -25,7 +25,7 @@ urlpatterns = [
     path('step1/', views.step1, name='step1'),
     path('signup/', views.signup, name='signup'),        
     path('logout/', views.signout, name='logout'),
-    path('signin/', views.signin, name='singin'),
+    path('signin/', views.signin, name='singin'), #CAMBIAR ESTA MAL! POSIBLE ERROr
     path('profile/', views.profile, name='profile'),
     path('groups/', views.groups, name='groups'),
     path('groups/create/', views.create_groups, name='create_groups'),
@@ -99,6 +99,10 @@ urlpatterns = [
     path('alerts/<int:alert_id>/', views.alert_detail, name='alert_detail'),
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
-    path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert')
+    path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
+        #BOTFLOW
+    path('bot_flow/', views.bot_flow, name='bot_flow'),
+    path('bot_flow/delete_bot/<int:bot_id>/', views.delete_bot, name='delete_bot'),
+    path('bot_flow/bot_edit/<int:bot_id>/', views.edit_bot, name='edit_bot')
     
 ]

@@ -1,33 +1,75 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
+from mptt.models import MPTTModel, TreeForeignKey
 
 # Create your models here.
-
 class Alert(models.Model):
     tittle = models.CharField(max_length=100)
     to = models.TextField(blank=True)
     body = models.TextField()
     description = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)  # blank true
     def __str__(self):
-        return self.name + '-by ' + self.user.username
+        return self.tittle + '-by ' + self.user.username
 
 class Contact(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='contactos/', blank=True, null=True)
     number = models.TextField(blank=True)
-    address = models.EmailField(blank = True) 
+    address = models.EmailField(blank=True)
     description = models.CharField(max_length=1024)
-    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)  # blank true
     def __str__(self):
         return self.name + '-by ' + self.user.username
 
-
-class Bots(models.Model):
-    bot_id = models.AutoField(primary_key=True)  # Campo para el ID único del bot
+#BOT ARBOL:
+class Bots(MPTTModel):
+    bot_id = models.AutoField(primary_key=True)
     tittle = models.CharField(max_length=100)
-    activator = models.CharField(max_length=255)  # El contenido que activa al bot
+    activator = models.CharField(max_length=255)
+    body = models.TextField()
+    response_buttons = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    created = models.DateTimeField(auto_now_add=True)  # Blank true
+
+    def __str__(self):
+        return self.tittle
+
+    def save(self, *args, **kwargs):
+        if self.response_buttons:
+            options = self.response_buttons.split(',')
+            super().save(*args, **kwargs)
+
+            for option in options:
+                new_bot = Bots(
+                    tittle=f"Respuesta: - {option}",
+                    activator=option.strip(),
+                    user=self.user,
+                    parent=self
+                )
+                new_bot.save()
+
+        else:
+            super().save(*args, **kwargs)
+
+class AccessToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255)
+    created = models.DateTimeField(auto_now_add=True)  # blank true
+
+    def __str__(self):
+        return self.token
+
+#BOT VIEJO
+""""
+class Bots(models.Model):
+    bot_id = models.AutoField(primary_key=True)
+    tittle = models.CharField(max_length=100)
+    activator = models.CharField(max_length=255)
     body = models.TextField()
     response_buttons = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -35,14 +77,25 @@ class Bots(models.Model):
     def __str__(self):
         return self.tittle
 
+    def save(self, *args, **kwargs):
+        if self.response_buttons:
+            options = self.response_buttons.split(',')
+            self.pk = None
+            super().save(*args, **kwargs)
 
-class AccessToken(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=255)
-    # Otros campos necesarios
+            for option in options:
+                new_bot = Bots(
+                    tittle=f"Respuesta: - {option}",
+                    activator=option.strip(),
+                    user=self.user,
+                )
+                new_bot.pk = None
+                new_bot.save()
 
-    def __str__(self):
-        return self.token
+        else:
+            super().save(*args, **kwargs)
+"""
+
 
 #Notification Models:
 

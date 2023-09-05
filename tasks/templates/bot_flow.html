@@ -1,0 +1,359 @@
+{% extends 'base.html' %} {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+
+{% block content %}
+<div class="text-center">
+  <h2>Bot Flow</h2>
+</div>
+<div class="row">
+  <div class="col-md-8">
+    <div class="card ml-2 text-center">
+      <div class="bot-container">
+        <!-- Lista de Bots existentes -->
+        {% if grouped_bots %} {% for level_bots in grouped_bots %}
+         <!-- IF SON MAS DE 3 -->
+         {% if level_bots|length > 3 %}
+         <div class="row bot-row justify-content-left" style="flex-wrap: nowrap; overflow-x: auto; width: 90%">
+         <!-- <div class="row bot-row justify-content-left" style="flex-wrap:nowrap ; overflow-x:auto"> -->
+          {% else %}
+        <div class="row bot-row justify-content-center" style="flex-wrap:nowrap ; overflow-x:auto ; width:90%">
+          {% endif %}
+          {% for bot in level_bots %}
+
+          <div class="col-md-6 col-xl-3 mt-2 mb-2 ml-2"style="text-wrap:wrap">
+            <div class="card m-b-30">
+              <div class="card-body row">
+                <div class="card-title align-self-center mb-0">
+                  <h5>{{bot.tittle}}</h5>
+                </div>
+              </div>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item">Activador: {{bot.activator}}</li>
+                <li class="list-group-item">Respuesta del bot: {{bot.body}}</li>
+                <li class="list-group-item">
+                  Posibles respuestas del contacto: {{bot.response_buttons}}
+                </li>
+              </ul>
+              <div class="card-body">
+                <div class="flex justify-center btn-group btn-group-sm">
+                  <a
+                    href="#"
+                    class="btn btn-primary tooltips"
+                    data-placement="top"
+                    data-toggle="modal"
+                    data-target="#editModal{{ bot.bot_id }}"
+                    ><i class="fa fa-pencil"></i>
+                  </a>
+                  <a
+                    href="#"
+                    class="btn btn-secondary tooltips"
+                    data-placement="top"
+                    data-toggle="modal"
+                    data-target="#deleteModal{{ bot.bot_id }}"
+                    ><i class="fa fa-times"></i
+                  ></a>
+                  <form method="post" action="{% url 'bot_flow' %}">
+                    {% csrf_token %}
+                    <input
+                      type="hidden"
+                      name="bot_id"
+                      value="{{ bot.bot_id }}"
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-info tooltips preview-bot-button"
+                      data-placement="top"
+                    >
+                      Previsualizar
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Modal de Confirmación de Eliminación para cada bot -->
+          <div
+            class="modal fade"
+            id="deleteModal{{ bot.bot_id }}"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="deleteModalLabel{{ bot.bot_id }}"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteModalLabel{{ bot.bot_id }}">
+                    Confirmar Eliminación
+                  </h5>
+                  <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  ¿Estás seguro de que deseas eliminar el bot "{{ bot.tittle
+                  }}"? Esto eliminará tambien a sus bots hijos.
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal"
+                  >
+                    Cancelar
+                  </button>
+                  <form
+                    method="post"
+                    action="{% url 'delete_bot' bot.bot_id %}"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Modal de Edición para cada bot -->
+          <div
+            class="modal fade"
+            id="editModal{{ bot.bot_id }}"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="editModalLabel{{ bot.bot_id }}"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editModalLabel{{ bot.bot_id }}">
+                    Editar Bot "{{ bot.tittle }}"
+                  </h5>
+                  <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form method="post" action="{% url 'edit_bot' bot.bot_id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label for="id_tittle">Título</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="id_tittle"
+                        name="tittle"
+                        value="{{ bot.tittle }}"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="id_activator">Activador</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="id_activator"
+                        name="activator"
+                        value="{{ bot.activator }}"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="id_body">Cuerpo</label>
+                      <textarea
+                        class="form-control"
+                        id="id_body"
+                        name="body"
+                        rows="3"
+                      >
+                    {{ bot.body }}
+                  </textarea
+                      >
+                    </div>
+                    <div class="form-group">
+                      <label for="id_response_buttons"
+                        >Respuestas posibles:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="id_response_buttons"
+                        name="response_buttons"
+                        value="{{ bot.response_buttons }}"
+                      />
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                      Guardar Cambios
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %} {% else %}
+        <div class="text-center p-4">
+          <h4>No existen bots aún</h4>
+          <p>Crea bots para observar tu Bot Flow</p>
+        </div>
+        {% endif %}
+        <!-- Botón para agregar nuevo bot -->
+        <button
+          type="button"
+          class="btn btn-success"
+          data-toggle="modal"
+          data-target="#addModal"
+        >
+          Agregar Bot
+        </button>
+      </div>
+    </div>
+    <!-- Modal para agregar nuevo bot -->
+    <div
+      class="modal fade"
+      id="addModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="addModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel">Agregar Nuevo Bot</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Formulario para agregar nuevo bot -->
+            <form method="post" action="{% url 'bot_flow' %}">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="id_tittle">Título</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="id_tittle"
+                  name="tittle"
+                  value="{{ bot.tittle }}"
+                />
+              </div>
+              <div class="form-group">
+                <label for="id_activator">Activador</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="id_activator"
+                  name="activator"
+                  value="{{ bot.activator }}"
+                />
+              </div>
+              <div class="form-group">
+                <label for="id_body">Cuerpo</label>
+                <textarea
+                  class="form-control"
+                  id="id_body"
+                  name="body"
+                  rows="3"
+                >
+                {{ bot.body }}
+              </textarea
+                >
+              </div>
+              <div class="form-group">
+                <label for="id_response_buttons">Respuestas posibles:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="id_response_buttons"
+                  name="response_buttons"
+                  value="{{ bot.response_buttons }}"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary">Crear Bot</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-center py-2">
+      <h4>PREVISUALIZACIÓN</h4>
+      <div class="col conversation flex">
+        <div class="row heading justify-content-between ml-0">
+          <div class="col-sm-2 col-md-1 col-xs-3 heading-avatar">
+            <div class="heading-avatar-icon">
+              <img src="https://bootdey.com/img/Content/avatar/avatar6.png" />
+            </div>
+          </div>
+          <div class="col-sm-8 col-xs-7 heading-name">
+            <a class="heading-name-meta">Contacto</a>
+            <span class="heading-online">Online</span>
+          </div>
+          <div class="col-sm-1 col-xs-1 heading-dot pull-right puntito">
+            <i class="fa fa-ellipsis-v fa-2x pull-right" aria-hidden="true"></i>
+          </div>
+        </div>
+        <div
+          class="row message py-3"
+          id="conversation"
+          style="background-color: #efe6dd; height: 80vh"
+        >
+          {% for message in messages %} {% if forloop.counter0|divisibleby:2 %}
+          <!-- Mensaje de receptor (activador) -->
+          <div class="row message-body text-left">
+            <div class="col-sm-12 message-main-receiver-tinacho">
+              <div class="receiver" style="background-color: #ffffff">
+                <div class="message-text">{{ message }}</div>
+                <span class="message-time pull-right">Sun</span>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!-- Mensaje de emisor (cuerpo del bot) -->
+          <div class="row message-body">
+            <div class="col-sm-12 float-end message-main-sender">
+              <div class="sender">
+                <div class="message-text">{{ message }}</div>
+                <span class="message-time pull-right">Sun</span>
+              </div>
+            </div>
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+        <div class="row reply">
+          <div class="col-sm-1 col-xs-1 reply-emojis">
+            <i class="fa fa-smile-o fa-2x"></i>
+          </div>
+          <div class="col-sm-9 col-xs-9 reply-main">
+            <textarea class="form-control" rows="1" id="comment"></textarea>
+          </div>
+          <div class="col-sm-1 col-xs-1 reply-recording">
+            <i class="fa fa-microphone fa-2x" aria-hidden="true"></i>
+          </div>
+          <div class="col-sm-1 col-xs-1 reply-send">
+            <i class="fa fa-send fa-2x" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

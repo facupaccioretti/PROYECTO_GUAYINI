@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_crontab',
     #'celery',
     'huey.contrib.djhuey',
+    'mptt',
     'tasks'
 ]
 

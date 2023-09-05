@@ -32,6 +32,8 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from itertools import groupby
+from operator import attrgetter
 
 
 # Agregar esta línea para definir el timezone por defecto
@@ -1812,3 +1814,83 @@ def delete_alert(request, alert_id):
         return redirect('alert_list')
     
     return render(request, 'delete_alert.html', {'alert': alert})
+
+#BOTFLOW
+
+@login_required
+def bot_flow(request):
+    selected_bot_id = request.POST.get('bot_id')
+    form = BotForm()
+    bots = Bots.objects.filter(user=request.user).order_by('level')
+    
+    if selected_bot_id:
+        selected_bot = get_object_or_404(Bots, bot_id=selected_bot_id)
+        bots_for_prev = get_bots_for_preview(selected_bot)
+        messages = get_messages_for_preview(bots_for_prev)
+    else:
+        messages = []
+
+        if request.method == "POST":
+            form = BotForm(request.POST, request.FILES)
+            if form.is_valid():
+                new_bot = form.save(commit=False)
+                new_bot.user = request.user
+                new_bot.save()
+                return redirect('bot_flow')
+
+    grouped_bots = groupby(bots, key=attrgetter('level'))
+    grouped_bot_list = [list(group) for key, group in grouped_bots]
+
+    context = {
+        'grouped_bots': grouped_bot_list,
+        'form': form,
+        'messages': messages,
+    }
+
+    return render(request, 'bot_flow.html', context)
+
+def get_bots_for_preview(selected_bot):
+    bots_for_prev = []
+    current_bot = selected_bot
+
+    while current_bot:
+        bots_for_prev.append(current_bot)
+        current_bot = Bots.objects.filter(user=current_bot.user, tree_id=current_bot.tree_id, level=current_bot.level - 1).first()
+
+    bots_for_prev.reverse()
+    return bots_for_prev
+
+def get_messages_for_preview(bots_for_prev):
+    messages = []
+
+    for bot in bots_for_prev:
+        messages.append(bot.activator)  # Agrega el activador como mensaje de receptor
+        messages.append(bot.body)  # Agrega el cuerpo como mensaje de emisor
+
+    return messages
+
+
+
+@login_required
+def edit_bot(request, bot_id):
+    bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+    
+    if request.method == "POST":
+        form = BotForm(request.POST, instance=bot)
+        if form.is_valid():
+            form.save()
+    
+    return redirect('bot_flow')  # Redirige de nuevo a la página bot_flow.html
+
+
+@login_required
+def delete_bot(request, bot_id):
+    bot = get_object_or_404(Bots, bot_id=bot_id, user=request.user)
+    
+    if request.method == 'POST':
+        bot.delete()
+    
+    return redirect('bot_flow')
+
+
+

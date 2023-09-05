@@ -1,18 +1,19 @@
-html,
-body,
-div,
-span {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
+.avatar-contacto{
+  width: 90%;
 }
 
-body {
-  background: url("https://www.bootdey.com/img/bgy.png") no-repeat fixed center;
-  background-size: cover;
+.message-main-receiver-tinacho {
+  /*padding: 10px 20px;*/
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+}
+
+
+.puntito{
+  width: 10%;
 }
 
 .bot-container {
@@ -25,6 +26,7 @@ body {
   vertical-align: top; /* Alinea los elementos en la parte superior */
   margin-bottom: 10px; /* Agrega margen inferior para separar las filas */
 }
+
 
 .pancho-conversation{
   height: 90%;
@@ -339,13 +341,28 @@ body {
   display: flex;
   flex-direction: column;
   justify-items: start;
-  padding: 0 !important;
+  padding: 10px 0 0 0 !important;
   margin: 0 !important;
   background-size: cover;
   overflow-y: auto;
   border: 1px solid #f7f7f7;
-  height: 85%;
+  height: 40px;
+  min-height: 70vh;
 }
+
+.message-dalebola {
+  display: flex;
+  flex-direction: column;
+  justify-items: start;
+  padding: 10px 0 0 0 !important;
+  margin: 0 !important;
+  background-size: cover;
+  overflow-y: auto;
+  border: 1px solid #f7f7f7;
+  height: 40px;
+  min-height: 70vh;
+}
+
 .message-previous {
   margin : 0 !important;
   padding: 0 !important;
@@ -373,7 +390,11 @@ body {
 .message-main-receiver {
   /*padding: 10px 20px;*/
   height: auto;
-  width: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  background-color: #009688;
 }
 
 .message-main-sender {
