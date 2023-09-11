@@ -32,6 +32,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from heyoo import WhatsApp
+from django.db.models import Q
 import pytz
 
 
@@ -1647,7 +1648,6 @@ def send_scheduled_messages_facebook(request):
 def chats(request):
         # Obtener el usuario actualmente autenticado
     user = request.user
-
     # Obtener los contactos del usuario
     contactos = Contact.objects.filter(user=user)
 
@@ -1773,10 +1773,10 @@ def delete_alert(request, alert_id):
     return render(request, 'delete_alert.html', {'alert': alert})
 
 @login_required
-def send_whatsapp(request):
+def send_whatsapp(request, number):
     #messenger = WhatsApp(settings.FACEBOOK_AUTH_TOKEN,settings.FACEBOOK_SENDER_NUMBER_1)
-    # Numero de telefono a donde enviar el mensaje - por ahora harcodeado 
-    destinyNumber = 543512594546
+    # Numero de telefono a donde enviar el mensaje 
+    destinyNumber = int(number)
     messageToSend = request.POST.get('messageToSend')
     # For sending a Text message
     #messenger.send_message(mensaje, str(to))
@@ -1865,6 +1865,10 @@ def send_whatsapp(request):
         mensaje.save()
         print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
         return render(request, 'chats.html')
+    else:
+        # Ocurrió un error al enviar el mensaje
+        # Puedes manejar el error de acuerdo a tus necesidades
+        pass
 
 @csrf_exempt
 def receive_whatsapp(request):
@@ -1917,10 +1921,12 @@ def receive_whatsapp(request):
             status = 'received'
 
             #Tomamos el numero de telefono y el mensaje
+            _from = data['entry'][0]['changes'][0]['value']['messages'][0]['from']
             mensaje = "Telefono:"+data['entry'][0]['changes'][0]['value']['messages'][0]['from']
             mensaje+= "| Mensaje:"+message_text
 
             print(f"Mensaje recibido:" + mensaje)
+            user = User.objects.get(username="facebook") 
 
             # Crea una nueva instancia del modelo Task y guarda los datos
             mensaje = Task(
@@ -1934,9 +1940,9 @@ def receive_whatsapp(request):
                 dateprogramed=None,
                 important=False,
                 to=wa_id,
-                sender='',
+                sender=_from,
                 groups='',
-                user=''
+                user=user
             )
             mensaje.save()
             print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
@@ -1945,3 +1951,4 @@ def receive_whatsapp(request):
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
+

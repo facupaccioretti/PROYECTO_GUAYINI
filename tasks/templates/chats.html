@@ -304,7 +304,7 @@
 
                       <!-- room side bar contacts -->
                         {% for contacto in contactos %}
-                        <div class="room-sidebar-groups" onclick="">
+                        <div class="room-sidebar-groups" onclick="loadChat('{{contacto.name}}', '{{contacto.image}}', '{{contacto.number}}', '{{contacto.id}}')">
                                   <div class="room-sidebar-groups-g-img">
                           {% if contacto.image %}
                           <img src="{{ contacto.image }}" >
@@ -328,14 +328,10 @@
                         <!-- msg chat header -->
                           <div class="msg-header mat-elevation-z6">
                             <div class="h-avatar">
-                            {% if contacto.image %}
-                            <img src="{{contacto.image}}">
-                            {% else %}
-                                  <img src="{% static 'images/default_profile.png' %}" alt="Default Profile">
-                            {% endif %}
+                            <img src="{% static 'images/default_profile.png' %}" id="contactImage">
                             </div>
                             <div class="h-users">
-                                <div class="h-user-group">{{contacto.name|title}}</div>
+                                <div class="h-user-group" id="contactName">{{contacto.name|title}}</div>
                             </div>
                             <div class="h-search"><svg viewBox="0 0 24 24" width="24" height="24" class=""><path fill="currentColor" d="M15.9 14.3H15l-.3-.3c1-1.1 1.6-2.7 1.6-4.3 0-3.7-3-6.7-6.7-6.7S3 6 3 9.7s3 6.7 6.7 6.7c1.6 0 3.2-.6 4.3-1.6l.3.3v.8l5.1 5.1 1.5-1.5-5-5.2zm-6.2 0c-2.6 0-4.6-2.1-4.6-4.6s2.1-4.6 4.6-4.6 4.6 2.1 4.6 4.6-2 4.6-4.6 4.6z"></path></svg></div>
                             <div class="h-menu"><svg viewBox="0 0 24 24" width="24" height="24" class=""><path fill="currentColor" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path></svg></div>
@@ -358,7 +354,7 @@
                         <!-- giphy search -->
 
                         <!-- msg input -->
-                        <form action="/send_whatsapp/" method="POST">
+                        <form id="messageForm" onsubmit="onSubmitForm()" method="POST">
                           {% csrf_token %}
                           <div class="msg-input">
                             <div id="btnClose" class="close">
@@ -394,6 +390,8 @@
 
 
           <script>
+            var selectedPhoneNumber = ""; // Variable global para almacenar el número de teléfono
+
             document.querySelector('#chat-message-input').focus();
             /*document.querySelector('#chat-message-input').onkeyup = function(e) {
                 if (e.keyCode === 13) {  // enter, return
@@ -403,6 +401,7 @@
                     messageInputDom.value = '';
                 }
             };*/
+
             document.addEventListener("DOMContentLoaded", function () {
             var inputElement = document.getElementById("chat-message-input");
             var sendButton = document.getElementById("sendButton");
@@ -425,7 +424,97 @@
             let msgbox = document.querySelector(".msg-box")
             msgbox.scrollTop = msgbox.scrollHeight
             } 
-          </script>
+
+            function loadChat(contactName, contactImage, contactNumber, contactId)
+            {
+              // Asigna el número de teléfono seleccionado a la variable global
+              selectedPhoneNumber = contactNumber;
+              var nombre = document.getElementById("contactName");
+              var image = document.getElementById("contactImage");
+              nombre.innerHTML = contactName;
+              if (contactImage !== "" && contactImage !== null)
+              {
+                image.src = contactImage;
+              }
+              else
+                image.src = "{% static 'images/default_profile.png' %}";
+
+              //loadPreviousMessages(contactNumber);
+            }
+
+            function onSubmitForm() {
+            // Capturamos el evento clic del botón "send"
+            document.getElementById("sendButton").addEventListener("click", function(event) {
+            // Evitamos que el formulario se envíe de forma estándar
+            event.preventDefault(); 
+            });
+
+            // Obtén el número de teléfono seleccionado desde la variable global
+            var phoneNumber = selectedPhoneNumber;
+
+            // Actualiza la acción del formulario con el número de teléfono
+            if (phoneNumber) {
+              var form = document.getElementById("messageForm");
+              form.action = "/send_whatsapp/" + phoneNumber.toString() + "/";
+            }
+            // Obtén el elemento del campo de entrada por su ID
+            var inputElement = document.getElementById("chat-message-input");
+
+            // Obtén el valor del campo de entrada
+            var mensaje = inputElement.value;
+
+            loadMessage(mensaje, true);
+
+            }
+
+            function loadMessage(msg, msgSent) { 
+            // create a new div element 
+            let newDiv = document.createElement("div"); 
+            // and give it some content 
+            //if (msg_type == 'image') {
+            //    msg = `<img src="${msg}"> <br/> ${img_caption}`;
+            //}
+
+            if (msgSent) {
+                var msg1 = `<div class="right-msg-container">
+                                <div class="s-message">
+                                    <div class="s-msg">${msg}</div>
+                                </div>
+                                <div class="s-tail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 13" preserveAspectRatio="none" width="8" height="13"><path opacity=".5" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path><path fill="#dcf8c6ff" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path></svg></div>
+                            </div>`
+            } else {
+                var msg1 = `<div class="left-msg-container">
+                                <div class="r-tail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 13" width="8" height="13"><path opacity=".5" fill="#0000000" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z"></path><path fill="white" d="M1.533 2.568L8 11.193V0H2.812C1.042 0 .474 1.156 1.533 2.568z"></path></svg></div>
+                                <div class="r-message" >
+                                    <div class="r-user"><a href="#">Usuario?</a></div>
+                                    <div class="r-msg">${msg}</div>
+                                </div>
+                            </div>`
+            }
+            
+            //if (msg_time) {
+            //    showDatesWeekDays(msg_time)
+            //} else {
+            //    showDatesWeekDays(new Date())
+            //}
+
+            newDiv.innerHTML = msg1;  
+
+            // add the newly created element and its content into the DOM 
+            let currentDiv = document.getElementById("new-message-chat"); 
+            let parentDiv = currentDiv.parentNode;
+            parentDiv.insertBefore(newDiv, currentDiv); 
+
+            //setSidebarMessage(msg_type, user, msg);
+            scrollBottom();
+
+        }
+
+        function scrollBottom() {
+            let msgbox = document.querySelector(".msg-box")
+            msgbox.scrollTop = msgbox.scrollHeight
+        }
+        </script>
 
   </body>
 </html>
