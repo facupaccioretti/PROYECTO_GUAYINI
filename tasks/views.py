@@ -34,6 +34,8 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from itertools import groupby
 from operator import attrgetter
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail as sendgridMail
 
 
 # Agregar esta línea para definir el timezone por defecto
@@ -95,6 +97,7 @@ def signup(request):
 def signin(request):
     if request.method == 'GET':
         response = requests.get('https://guayini.com/send_scheduled_messages_facebook/')
+        response2 = requests.get('https://guayini.com/send_scheduled_emails/')
         return render(request, 'signin.html',{
             'form': AuthenticationForm
         })
@@ -126,9 +129,12 @@ def profile(request):
 
 #NOTIFICATION VIEWS
     # WHATSAPP VIEWS:
-@login_required       
+@login_required
 def tasks(request):
     tasks = Task.objects.filter(user=request.user)
+    completed_tasks = [task for task in tasks if task.datecompleted]
+    pending_tasks = [task for task in tasks if not task.datecompleted]
+
     if request.method == "POST":
         form = TaskForm(request.POST, request.FILES)
         if form.is_valid():
@@ -136,9 +142,18 @@ def tasks(request):
             new_task.user = request.user
             new_task.save()
             return redirect('tasks')
+        else:
+            print(form.errors)  # Esto mostrará los errores de validación en la consola de desarrollo
     else:
         form = TaskForm()
-    return render(request, 'tasks.html', {'tasks': tasks, 'form': form})
+
+    context = {
+        'completed_tasks': completed_tasks,
+        'pending_tasks': pending_tasks,
+        'form': form,
+    }
+
+    return render(request, 'tasks.html', context)
 
 
 @login_required
@@ -193,9 +208,15 @@ def delete_task(request, task_id):
 
 #NOTIFICATION VIEWS
     # MAIL VIEWS:
-@login_required 
+@login_required
 def mails(request):
-    mails = Mail.objects.filter(user=request.user)    
+    # Obtener la zona horaria de Argentina
+    tz = pytz.timezone("America/Argentina/Cordoba")
+    # Obtener la fecha y hora actual en la zona horaria especificada
+    now = timezone.now().astimezone(tz)
+    
+    # Filtrar correos que aún no han sido enviados y tienen fecha programada igual o posterior a hoy
+    mails = Mail.objects.filter(user=request.user, dateprogramed__gte=now)
     return render(request, 'mails.html', {'mails': mails})
 
 @login_required
@@ -214,8 +235,13 @@ def create_mail(request):
 
 @login_required
 def mails_completed(request):
-    mails = Mail.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
+    # Obtener la zona horaria de Argentina
+    tz = pytz.timezone("America/Argentina/Cordoba")
+    # Obtener la fecha y hora actual en la zona horaria especificada
+    now = timezone.now().astimezone(tz)
     
+    # Filtrar correos cuya fecha programada es anterior al día de hoy y han sido completados
+    mails = Mail.objects.filter(user=request.user, dateprogramed__lt=now)
     return render(request, 'mails.html', {'mails': mails})
 
 @login_required        
@@ -1892,5 +1918,52 @@ def delete_bot(request, bot_id):
     
     return redirect('bot_flow')
 
+@csrf_exempt
+def send_scheduled_emails(request):
+    if request.method == 'GET':
+        # Obtén todos los correos electrónicos programados que aún no se han enviado
+        emails = Mail.objects.filter(dateprogramed__lte=timezone.now(), datecompleted__isnull=True)
 
+        # Define la URL de la API de EnvialoSimple
+        api_url = "https://api.envialosimple.email/api/v1/mail/send"
 
+        # Define las cabeceras de la solicitud
+        headers = {
+            'Authorization': 'Bearer <tu_token_de_autenticacion>',
+            'Content-Type': 'application/json'
+        }
+
+        for email in emails:
+            # Dividir las direcciones de correo electrónico por ";"
+            email_addresses = email.adress.split(";")
+
+            # Incluir miembros del grupo si se seleccionó un grupo
+            if email.groups:
+                group = MailGroup.objects.get(pk=email.groups)
+                group_members = group.members.split(";")
+                email_addresses.extend(group_members)
+
+            for email_address in email_addresses:
+                # Resto de tu código para enviar el correo electrónico, similar a como lo tenías antes
+                email_data = {
+                    "from": "notificaciones@empresa.com",
+                    "to": email_address.strip(),  # Limpiar espacios en blanco
+                    "subject": email.subject,
+                    "html": email.message,
+                    # Puedes agregar más campos o personalización aquí según tus necesidades
+                }
+
+                # Convierte los datos a formato JSON
+                payload = json.dumps(email_data)
+
+                # Realiza la solicitud POST a la API de EnvialoSimple
+                response = requests.post(api_url, headers=headers, data=payload)
+
+                if response.status_code == 200:
+                    # Marca el correo electrónico como enviado
+                    email.datecompleted = timezone.now()
+                    email.save()
+
+        return JsonResponse({'mensaje': 'Correos electrónicos enviados exitosamente'})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})

@@ -124,8 +124,10 @@ class Mail(models.Model):
     adress = models.EmailField(blank = True)
     created = models.DateTimeField(auto_now_add=True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
+    datecompleted = models.DateTimeField(null=True, blank = True)
     important = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    groups = models.TextField(blank=True)
 
     def __str__(self):
         return self.tittle + '-by ' + self.user.username

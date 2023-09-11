@@ -56,8 +56,8 @@ urlpatterns = [
     path('tasks/<int:task_id>/delete/', views.delete_task, name='delete_task'),
     # MAIL NOTIFICATION PATHS
     path('mails/', views.mails, name='mails'),
-    path('mails/completed', views.mails_completed, name='mail_completed'),
-    path('create_mails/', views.create_mail, name='create_mails'),
+    path('mails/completed/', views.mails_completed, name='mail_completed'),
+    path('mails/create/', views.create_mail, name='create_mails'),
     path('mails/<int:mail_id>/', views.mail_detail, name='mail_detail'),
     path('mails/<int:mail_id>/complete/', views.complete_mail, name='complete_mail'),
     path('mails/<int:mail_id>/delete/', views.delete_mail, name='delete_mail'),
@@ -103,6 +103,9 @@ urlpatterns = [
         #BOTFLOW
     path('bot_flow/', views.bot_flow, name='bot_flow'),
     path('bot_flow/delete_bot/<int:bot_id>/', views.delete_bot, name='delete_bot'),
-    path('bot_flow/bot_edit/<int:bot_id>/', views.edit_bot, name='edit_bot')
+    path('bot_flow/bot_edit/<int:bot_id>/', views.edit_bot, name='edit_bot'),
+
+
+    path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails')
     
 ]

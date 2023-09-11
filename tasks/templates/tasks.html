@@ -1,215 +1,138 @@
 {% extends 'base.html' %} {% block content %} {{ form.media }}
 <main class="container">
   <div class="row">
-    <div class="col-md-6 offset-md-3">
-      <!-- Botones de modales -->
-      <div class="d-flex justify-content-between">
-        <button
-          type="button"
-          class="btn btn-primary creationButton mt-3 ml-1"
-          data-toggle="modal"
-          data-target="#createWhatsappNotificationModal"
-        >
-          Create New Whatsapp Notification
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary mt-3 ml-auto"
-          data-toggle="modal"
-          data-target="#helpModal"
-        >
-          <i class="bi bi-question-circle"></i>
-        </button>
-      </div>
+    <div class="col-md-8">
+      <h4 class="font-weight-bold py-3 mb-4 text-center">Notificaciones programadas de WhatsApp</h4>
+      <!-- Columna principal para mostrar las listas -->
       <div class="card card-body mt-3">
-        <h4 class="text-center display-7 py-5 text-dark">
-          Programed whatsapp's notifications
-        </h4>
-        <ul class="list-group">
-          {% for task in tasks %}
-          <a class="list-group-item" href="{% url 'task_detail' task.id %}">
-            <header class="d-flex justify-content-between">
-              {% if task.important %}
-              <h5 class="fw-bold text-success display-9">{{task.tittle}}</h5>
-              {% else %}
-              <h5 class="fw-bold text-success display-9">{{task.tittle}}</h5>
-              {% endif %}
-              <p>{{task.message}}</p>
-            </header>
-          </a>
-          {% endfor %}
-        </ul>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="text-center">Notificaciones pendientes</h5>
+            <ul class="list-group">
+              {% for task in pending_tasks %}
+              <a class="list-group-item" href="{% url 'task_detail' task.id %}">
+                <header class="d-flex justify-content-between">
+                  {% if task.important %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{task.tittle}}
+                  </h5>
+                  {% else %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{task.tittle}}
+                  </h5>
+                  {% endif %}
+                  <p>{{task.message}}</p>
+                </header>
+              </a>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="col-md-12 mt-3">
+            <h5 class="text-center">Notificaciones completadas</h5>
+            <ul class="list-group">
+              {% for task in completed_tasks %}
+              <a class="list-group-item" href="{% url 'task_detail' task.id %}">
+                <header class="d-flex justify-content-between">
+                  {% if task.important %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{task.tittle}}
+                  </h5>
+                  {% else %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{task.tittle}}
+                  </h5>
+                  {% endif %}
+                  <p>{{task.message}}</p>
+                </header>
+              </a>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</main>
-<!-- Modal de creación de Whatsapp Notification -->
-<!-- Modal de creación de Whatsapp Notification -->
-<div
-  class="modal fade"
-  id="createWhatsappNotificationModal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="createWhatsappNotificationModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="createWhatsappNotificationModalLabel">
-          Create New Whatsapp Notification
-        </h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <!-- Formulario de creación de Whatsapp Notification -->
+    <div class="col-md-4">
+      <!-- Columna para el formulario estático -->
+      <div class="card card-body mt-3">
+        <h4 class="text-center display-7 py-2 text-dark">
+          Crear nueva notificación de WhatsApp
+        </h4>
+        <!-- Formulario de creación de notificación de WhatsApp -->
         <form
           action="{% url 'tasks' %}"
           method="POST"
           enctype="multipart/form-data"
-          name="create-WhatsappNotification-form"
+          name="crear-formulario-WhatsAppNotification"
         >
           {% csrf_token %}
-
-          <label for="id_tittle">Tittle:</label>
+          <label for="id_tittle">Título:</label>
           <input
             type="text"
             name="tittle"
             class="form-control"
-            placeholder="Write a tittle"
+            placeholder="Escribe un título"
             maxlength="100"
             required=""
           />
 
-          <label for="id_message">Message:</label>
+          <label for="id_mensaje">Mensaje:</label>
           <textarea
-            name="message"
+            name="mensaje"
             cols="10"
             rows="3"
             class="form-control"
-            placeholder="Write your message"
+            placeholder="Escribe tu mensaje"
           ></textarea>
-
-          <label for="id_to">To:</label>
+          <br>
+          Destinatarios:
+          <br>
+          <br>
+          <label for="id_destinatario">Invididuales:</label>
           <textarea
-            name="to"
+            name="destinatario"
             cols="10"
             rows="3"
             class="form-control"
-            placeholder="Write your contact"
+            placeholder="Escribe tu contacto"
           ></textarea>
 
-          <label for="id_groups">Groups:</label>
+          <label for="id_grupos">Grupos:</label>
           <textarea
-            name="groups"
+            name="grupos"
             cols="10"
             rows="3"
             class="form-control"
-            placeholder="Write your contact group"
+            placeholder="Escribe tu grupo de contactos"
           ></textarea>
-
-          <label for="id_dateprogramed">Dateprogramed:</label>
+          <label for="id_fecha_programada">Fecha programada:</label>
           <div class="input-group dbdp">
             <input
               type="text"
-              id="id_dateprogramed"
+              id="id_fecha_programada"
               data-dbdp-config='{"variant": "datetime", "backend_date_format": "YYYY-MM-DD HH:mm:ss", "options": {"format": "YYYY-MM-DD HH:mm", "showClose": true, "showClear": true, "showTodayButton": true}}'
               data-dbdp-debug=""
-              data-name="dateprogramed"
+              data-name="fecha_programada"
             />
 
             <div class="input-group-addon input-group-append input-group-text">
               <i class="bi-calendar"></i>
             </div>
           </div>
-          <label for="id_important">Important:</label>
+          <label for="id_importante">Importante:</label>
           <input
             type="checkbox"
-            name="important"
+            name="importante"
             class="form-check-input m-auto"
-            id="id_important"
+            id="id_importante"
           />
 
           <br />
           <button type="submit" class="btn btn-primary">
-            Create Whatsapp Notification
+            Crear notificación de WhatsApp
           </button>
         </form>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Modal de ayuda -->
-<div
-  class="modal fade"
-  id="helpModal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="helpModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="helpModalLabel">Help and Information</h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body text-center">
-        <p>
-          Las notificaciones de whatsapp son mensajes programados según un dia,
-          hora y minuto específico. En esta página podrás observar todas las
-          notificaciones que has creado, hayan sido enviadas o no. Para
-          editarlas o eliminarlas, puedes hacer click sobre cualquiera de ellas.
-          Para crear una nueva, utiliza el botón Create Whatsapp Notification y
-          llena el formulario con la información necesaria. Puedes colocar los
-          destinatarios como una cadena de numeros separados por ",", o bien
-          puedes agregar grupos de contactos previamente creados.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">
-          Close
-        </button>
-        <!-- Add a button here to save the help information if needed -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Script para inicializar el DateTimePicker -->
-<script>
-  $(function () {
-    $("#datetimepickerContainer").datetimepicker({
-      format: "YYYY-MM-DD HH:mm",
-      showClear: true,
-      icons: {
-        time: "fas fa-clock",
-        date: "fas fa-calendar",
-        up: "fas fa-chevron-up",
-        down: "fas fa-chevron-down",
-        previous: "fas fa-chevron-left",
-        next: "fas fa-chevron-right",
-        today: "fas fa-calendar-day",
-        clear: "fas fa-trash",
-        close: "fas fa-times",
-      },
-    });
-  });
-</script>
-
+</main>
 {% endblock %}

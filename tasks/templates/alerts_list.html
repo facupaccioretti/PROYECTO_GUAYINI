@@ -11,7 +11,7 @@
           data-toggle="modal"
           data-target="#createAlertModal"
         >
-          Create New Alert
+          Crear nueva alerta
         </button>
         <button
           type="button"
@@ -23,7 +23,7 @@
         </button>
       </div>
       <div class="card card-body mt-3">
-        <h4 class="text-center display-7 py-5 text-dark">List of Alerts</h4>
+        <h4 class="text-center display-7 py-5 text-dark">Lista de alertas</h4>
         <ul class="list-group">
           {% for alert in alerts %}
           <a class="list-group-item" href="{% url 'alert_detail' alert.id %}">
@@ -51,7 +51,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="createAlertModalLabel">Create New Alert</h5>
+        <h5 class="modal-title" id="createAlertModalLabel">Crear nueva alerta</h5>
         <button
           type="button"
           class="close"
@@ -81,7 +81,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="id_to">To:</label>
+            <label for="id_to">Para:</label>
             <input
               type="text"
               class="form-control form-control-sm"
@@ -91,7 +91,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="id_body">Mensaje</label>
+            <label for="id_body">Mensaje:</label>
             <textarea
               class="form-control form-control-sm"
               id="id_body"
@@ -101,7 +101,7 @@
             ></textarea>
           </div>
           <div class="form-group">
-            <label for="id_description">Descripción</label>
+            <label for="id_description">Descripción:</label>
             <textarea
               class="form-control form-control-sm"
               id="id_description"
@@ -110,7 +110,7 @@
               placeholder="Ingrese la descripción"
             ></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Create Alert</button>
+          <button type="submit" class="btn btn-primary">Crear Alerta</button>
         </form>
       </div>
     </div>
@@ -129,7 +129,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="helpModalLabel">Help and Information</h5>
+        <h5 class="modal-title" id="helpModalLabel">Ayuda e información</h5>
         <button
           type="button"
           class="close"
@@ -152,7 +152,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">
-          Close
+          Cerrar
         </button>
         <!-- Add a button here to save the help information if needed -->
       </div>

@@ -2,25 +2,86 @@
 
 <main class="container">
   <div class="row">
-    <div class="col-md-6 offset-md-3">
-      <div class="card card-body mt-3">
-        <h4 class="text-center display-7 py-5">
-          Programed mails notifications
-        </h4>
-        <ul class="list-group">
-          {% for mail in mails %}
-          <a class="list-group-item" href="{% url 'mail_detail' mail.id %}">
-            <header class="d-flex justify-content-between">
-              {% if task.important %}
-              <h5 class="fw-bold text-success display-9">{{mail.tittle}}</h5>
-              {% else %}
-              <h5 class="fw-bold text-primary display-9">{{mail.tittle}}</h5>
-              {% endif %}
-              <p>{{mail.message}}</p>
-            </header>
-          </a>
-          {% endfor %}
-        </ul>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <div class="container bootdey mt-2">
+      <div class="email-app mb-4">
+        <nav>
+          <a href="{% url 'create_mails' %}" class="btn btn-danger btn-block"
+            >Nueva notificación de Email</a
+          >
+          <ul class="nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'mails' %}"
+                ><i class="fa fa-inbox"></i> Programados </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'mail_completed' %}"><i class="fa fa-rocket"></i> Enviados</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#"
+                ><i class="fa fa-bookmark"></i> Importantes</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <main class="inbox">
+          <div class="toolbar">
+            <div class="btn-group">
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-envelope"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-star"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-star-o"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-bookmark-o"></span>
+              </button>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-mail-reply"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-mail-reply-all"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-mail-forward"></span>
+              </button>
+            </div>
+            <button type="button" class="btn btn-light">
+              <span class="fa fa-trash-o"></span>
+            </button>
+            <div class="btn-group float-right">
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-chevron-left"></span>
+              </button>
+              <button type="button" class="btn btn-light">
+                <span class="fa fa-chevron-right"></span>
+              </button>
+            </div>
+          </div>
+          <ul class="messages">
+            {% for mail in mails %}
+            <li class="message unread">
+              <a href="{% url 'mail_detail' mail.id %}" style="text-decoration: none">
+                <div class="header">
+                  <span class="from">{{ mail.adress }}</span>
+                  <span class="date">
+                    <span class="fa fa-paper-clip"></span> {{ mail.dateprogramed }}</span>
+                </div>
+                <div class="title">{{ mail.tittle }}</div>
+                <div class="description">{{ mail.subject }}</div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </main>
       </div>
     </div>
   </div>

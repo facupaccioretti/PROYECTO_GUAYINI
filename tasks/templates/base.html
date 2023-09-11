@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/CreationButton.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/botchat1.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/mailNotification.css' %}" />
     
     <!-- Cargar jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -84,7 +85,7 @@
                 {% if user.is_authenticated %}
                 <li class="nav-item p-4 py-md-1">
                   <a href="/profile" class="nav-link"><i class="bi bi-person-fill"></i>
-                    Profile </a>
+                    Perfil </a>
                 </li>
                 <li class="nav-item p-4 py-md-1"> {% block chat %}
                   <a href="/chats" class="nav-link"><i class="bi bi-chat-dots-fill"></i>
@@ -92,26 +93,26 @@
                 </li>
                 <li class="nav-item p-4 py-md-1">
                   <a href="{% url 'notifications' %}" class="nav-link"><i class="bi bi-bell-fill"></i>
-                    Notifications</a>
+                    Notificaciones</a>
                 </li>                <li class="nav-item p-4 py-md-1">
                   <a href="{% url 'alerts' %}" class="nav-link"><i class="bi bi-exclamation-triangle-fill"></i>
-                    Alerts</a>
+                    Alertas</a>
                 </li>
                 <li class="nav-item p-4 py-md-1">
                   <a href="{% url 'calendar' %}" class="nav-link"><i class="bi bi-calendar3"></i>
-                    Calendar</a>
+                    Calendario</a>
                 </li>
                 <li class="nav-item p-4 py-md-1">
                   <a href="/contacts" class="nav-link"><i class="bi bi-people-fill"></i>
-                    Contacts </a>
+                    Contactos </a>
                 </li>
                 <li class="nav-item dropend p-4 py-md-1">
                   <a href="" class="nav-link dropdown-toggle" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-people-fill"></i> Groups</a>
+                    <i class="bi bi-people-fill"></i> Grupos</a>
                     <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                      <li><h6 class="dropdown-header">Groups options</h6></li>
-                      <li><a class="dropdown-item" href="{% url 'groups' %}">Groups</a></li>
-                      <li><a class="dropdown-item" href="{% url 'create_groups' %}">Create new groups</a></li>
+                      <li><h6 class="dropdown-header">Opciones de los grupos</h6></li>
+                      <li><a class="dropdown-item" href="{% url 'groups' %}">Grupos</a></li>
+                      <li><a class="dropdown-item" href="{% url 'create_groups' %}">Crear grupos</a></li>
                     </ul>
                 </li>
                 <li class="nav-item p-4 py-md-1">
@@ -123,14 +124,14 @@
                      BOT's</a>
                 </li>
                 <li class="nav-item p-4 py-md-1">
-                  <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+                  <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-left"></i> Cerrar sesión</a>
                 </li>
                 {% else %}
                 <li class="nav-item p-4 py-md-1">
-                  <a href="/signin" class="nav-link"><i class="bi bi-box-arrow-right"></i> Login</a>
+                  <a href="/signin" class="nav-link"><i class="bi bi-box-arrow-right"></i> Iniciar Sesión</a>
                 </li>
                 <li class="nav-item p-4 py-md-1">
-                  <a href="/signup" class="nav-link"><i class="bi bi-plus-square"></i> Register</a>
+                  <a href="/signup" class="nav-link"><i class="bi bi-plus-square"></i> Registrarse</a>
                 </li>
                 {% endif %}
               </ul>
