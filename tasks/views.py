@@ -136,6 +136,7 @@ def tasks(request):
     pending_tasks = [task for task in tasks if not task.datecompleted]
 
     if request.method == "POST":
+        print(request.POST)
         form = TaskForm(request.POST)
         if form.is_valid():
             new_task = form.save(commit=False)
