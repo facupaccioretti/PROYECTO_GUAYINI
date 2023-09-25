@@ -1773,11 +1773,11 @@ def delete_alert(request, alert_id):
     return render(request, 'delete_alert.html', {'alert': alert})
 
 @login_required
-def send_whatsapp(request, number):
+def send_whatsapp(request, number, message):
     #messenger = WhatsApp(settings.FACEBOOK_AUTH_TOKEN,settings.FACEBOOK_SENDER_NUMBER_1)
     # Numero de telefono a donde enviar el mensaje 
     destinyNumber = int(number)
-    messageToSend = request.POST.get('messageToSend')
+    messageToSend = message
     # For sending a Text message
     #messenger.send_message(mensaje, str(to))
     # Guardar mensaje enviado en la base de datos --- modificar para que se mande con request y no con heyoo
@@ -1864,7 +1864,7 @@ def send_whatsapp(request, number):
         )
         mensaje.save()
         print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
-        return render(request, 'chats.html')
+        return JsonResponse({'message': 'mensaje enviado'})
     else:
         # Ocurrió un error al enviar el mensaje
         # Puedes manejar el error de acuerdo a tus necesidades
@@ -1951,4 +1951,12 @@ def receive_whatsapp(request):
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
         return HttpResponse(status=405)
+
+def get_messages(request, contact_number):
+    # Realiza la consulta en la base de datos para recuperar los mensajes
+    messages = Task.objects.filter(Q(to=contact_number) | Q(sender=contact_number)).order_by('created')
+    # Puedes serializar los mensajes si es necesario
+    serialized_messages = [{'message': msg.message, 'status': msg.status, 'created':msg.created} for msg in messages]
+    
+    return JsonResponse(serialized_messages, safe=False)
 

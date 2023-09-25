@@ -342,14 +342,18 @@ svg {
 
 .msg-box {
   grid-area: msg-box;
-  padding-left:4rem;
-  padding-right:4rem;
-  padding-bottom: 4rem;
+  padding-left:2rem;
+  padding-right:2rem;
+  padding-bottom: 2rem;
 }
 
 .msg-box--background {
   background: #efe7dd url("https://cloud.githubusercontent.com/assets/398893/15136779/4e765036-1639-11e6-9201-67e728e86f39.jpg") repeat;
   overflow-y: scroll;
+}
+
+.msg-chat {
+  height: fit-content;
 }
 
 .giphy-search-show {
@@ -397,6 +401,19 @@ svg {
   grid-template-areas: "close emoji gif type-a-message mic";
   align-content: center;
   background-color: #f0f0f0ff;
+}
+
+.date_weekday {
+  display: grid;
+  justify-self: center;
+  padding: 5px 12px 6px;
+  font-size: 0.78rem;
+  background-color: #e1f3faff;
+  border-radius: 7.5px;
+  width: fit-content;
+  box-shadow: 0 1px .5px rgba(0,0,0,.13);
+  line-height: 21px;
+  height: fit-content;
 }
 
 .preview-img {
@@ -589,6 +606,8 @@ svg {
     border-top-right-radius: 0;
     /*box-shadow: 0 1px .5px rgb(31, 30, 30),.13); */
     box-shadow: 0 1px .5px rgba(0,0,0,.2);
+    width: fit-content;
+    height: fit-content;
 }
 
 .r-message {
@@ -596,8 +615,7 @@ svg {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 20px 1fr;
-    grid-template-areas: "r-user"
-                         "r-msg"
+    grid-template-areas: "r-msg"
                          "r-time";
 
     justify-self:left;
@@ -606,6 +624,8 @@ svg {
     border-top-left-radius: 0;
     /*box-shadow: 0 1px .5px rgb(31, 30, 30),.13); */
     box-shadow: 0 1px .5px rgba(0,0,0,.2);
+    width: fit-content;
+    height: fit-content;
 }
 
 .s-msg {

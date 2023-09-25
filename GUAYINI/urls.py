@@ -100,7 +100,8 @@ urlpatterns = [
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
     path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
-    path('send_whatsapp/<str:number>/', views.send_whatsapp, name='send_whatsapp'),
-    path('receive_whatsapp/', views.receive_whatsapp, name='receive_whatsapp')
+    path('send_whatsapp/<str:number>/<str:message>/', views.send_whatsapp, name='send_whatsapp'),
+    path('receive_whatsapp/', views.receive_whatsapp, name='receive_whatsapp'),
+    path('get_messages/<str:contact_number>/', views.get_messages, name='get_messages')
     
 ]
