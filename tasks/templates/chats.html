@@ -410,10 +410,28 @@
             }
             });
           });
+
             function scrollBottom() {
             let msgbox = document.querySelector(".msg-box")
             msgbox.scrollTop = msgbox.scrollHeight
-            } 
+            }
+
+            let webSocketProtocol = location.protocol == 'https:' ? 'wss' : 'ws';
+
+            const chatSocket = new WebSocket(
+                `${webSocketProtocol}://${window.location.host}/ws/receive_whatsapp/`
+            );
+            console.log(webSocketProtocol)
+            console.log(window.location.host)
+
+            chatSocket.onopen = () => {
+            console.log('Conexión WebSocket abierta')}
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data)
+                loadMessage(data.message, false, "");
+                scrollBottom();
+            }
 
             function loadChat(contactName, contactImage, contactNumber, contactId)
             {
@@ -515,7 +533,6 @@
               fetch(`/get_messages/${contactNumber}/`)
               .then(response => response.json())
               .then(data => {
-                  console.log(data);
                   for (let msg of data) {
                         loadMessage(msg.message, msg.status == 'sent', contactName, msg.created);
                     }
@@ -536,13 +553,11 @@
                 // define as Date so we can convert to acceptable date time format (with out letter T, ex. 2020-10-10T06:50:14.751 )
                 temp = new Date(msg_time); 
                 let time = temp.toLocaleString([], { hour: '2-digit', minute: '2-digit' });
-                console.log(time);
                 return time;
             } else {
                 var today = new Date();
                 // Format & render to local time
                 let time = today.toLocaleString([], { hour: '2-digit', minute: '2-digit' });
-                console.log(time);
                 return time;
             }
 

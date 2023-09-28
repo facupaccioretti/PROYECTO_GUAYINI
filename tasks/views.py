@@ -34,6 +34,8 @@ from django.contrib.auth import get_user_model
 from heyoo import WhatsApp
 from django.db.models import Q
 import pytz
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 # Agregar esta línea para definir el timezone por defecto
@@ -1946,7 +1948,16 @@ def receive_whatsapp(request):
             )
             mensaje.save()
             print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
-
+        
+        channel_layer = get_channel_layer()
+        print(channel_layer)
+        async_to_sync(channel_layer.group_send)(
+        'tasks',
+        {
+            'type': 'send_message',
+            'message': mensaje.message,
+        }
+    )
         return HttpResponse(status=200)
     else:
         # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
