@@ -2138,7 +2138,7 @@ def send_scheduled_emails(request):
     if request.method == 'GET':
         # Obtén todos los correos electrónicos programados que aún no se han enviado
         emails = Mail.objects.filter(dateprogramed__lte=timezone.now(), datecompleted__isnull=True)
-        print('LOS EMAILS A ENVIAR SON:')
+        
 
         # Define la URL de la API de EnvialoSimple
         api_url = "https://api.envialosimple.email/api/v1/mail/send"
@@ -2150,6 +2150,7 @@ def send_scheduled_emails(request):
         }
 
         for email in emails:
+            print('ENVIANDO EL MAIL CON TITULO:')
             print(email.tittle)
             # Dividir las direcciones de correo electrónico por ","
             email_addresses = email.adress.split(",")
@@ -2382,6 +2383,7 @@ def send_whatsapp_alerts(request):
 
                         response = requests.post(url, headers=headers, json=data)
                         print(response)
+                        print(response.json)
                         if response.status_code == 200:
                             # Incrementar el contador de envíos y actualizar la fecha del último envío
                             alert.increase_sent_count()
