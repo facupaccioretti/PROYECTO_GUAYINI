@@ -2383,7 +2383,7 @@ def send_whatsapp_alerts(request):
 
                         response = requests.post(url, headers=headers, json=data)
                         print(response)
-                        print(response.json)
+                        print(response.json())
                         if response.status_code == 200:
                             # Incrementar el contador de envíos y actualizar la fecha del último envío
                             alert.increase_sent_count()
