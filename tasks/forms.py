@@ -1,11 +1,11 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, Alert, Bots, Contact
+from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, WhatsappAlert, Bots, Contact
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 
-class AlertForm(forms.ModelForm):
+class WhatsappAlertForm(forms.ModelForm):
     class Meta:
-        model = Alert
+        model = WhatsappAlert
         fields = ['tittle', 'to', 'body', 'description']
 
 class ContactForm(forms.ModelForm):
@@ -40,21 +40,21 @@ class MailForm(forms.ModelForm):
             'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
             'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
             'subject' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your subject'}), 
-            'adress' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver email adress separated by ";"'}),
+            'adress' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver email adress separated by ","'}),
+            'groups' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your contact group'}),
             'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
-            'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
-            'groups' : forms.ModelChoiceField(queryset=MailGroup.objects.all(), empty_label="Select a group (or leave empty)", required=False)  # Hacerlo opcional para permitir la entrada de direcciones de correo electrónico)
+            'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'})
+            
         }
 
 class PhoneForm(forms.ModelForm):
     class Meta:
         model = Phone
-        fields = ['tittle', 'message', 'subject', 'adress', 'dateprogramed', 'important']
+        fields = ['tittle', 'message', 'to', 'dateprogramed', 'important']
         widgets = {
             'tittle' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write a tittle'}),
-            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}),
-            'subject' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your subject'}), 
-            'adress' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver email adress'}),
+            'message' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write a your message'}), 
+            'to' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Write the receiver number'}),
             'dateprogramed' : DateTimePickerInput(options={"format": "YYYY-MM-DD HH:mm", "showClose": True,  "showClear": True,   "showTodayButton": True}),
             'important' : forms.CheckboxInput(attrs={'class': 'form-check-input m-auto'}),
         }
@@ -66,7 +66,12 @@ class WhatsappGroupForm(forms.ModelForm):
         widgets = {
             'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Escriba el nombre del grupo'}),
             'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba una descripción del grupo'}),
-            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ";"'})       
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ","'})       
+        }
+        labels = {
+            'groupname': 'Nombre del Grupo',
+            'description': 'Descripción',
+            'members': 'Miembros',
         }
 
 class MailGroupForm(forms.ModelForm):
@@ -76,7 +81,12 @@ class MailGroupForm(forms.ModelForm):
         widgets = {
             'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Escriba el nombre del grupo'}),
             'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba una descripción del grupo'}),
-            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ";"'})       
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ","'})       
+        }
+        labels = {
+            'groupname': 'Nombre del Grupo',
+            'description': 'Descripción',
+            'members': 'Miembros',
         }
 
 class PhoneGroupForm(forms.ModelForm):
@@ -86,6 +96,10 @@ class PhoneGroupForm(forms.ModelForm):
         widgets = {
             'groupname' : forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Escriba el nombre del grupo'}),
             'description' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba una descripción del grupo'}),
-            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ";"'})       
+            'members' : forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Escriba los miembros del grupo separados por ","'})       
         }
-
+        labels = {
+            'groupname': 'Nombre del Grupo',
+            'description': 'Descripción',
+            'members': 'Miembros',
+        }

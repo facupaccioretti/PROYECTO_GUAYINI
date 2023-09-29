@@ -95,8 +95,9 @@ urlpatterns = [
     path('contacts/<int:contact_id>/complete/', views.complete_contact, name='complete_contact'),
     path('contacts/<int:contact_id>/delete/', views.delete_contact, name='delete_contact'),
     path('send_scheduled_messages_facebook/', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook'),
-    path('alerts/list/', views.alerts_list, name='alerts_list'),
-    path('alerts/<int:alert_id>/', views.alert_detail, name='alert_detail'),
+    path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails'),
+    path('alerts/whatsapp/list/', views.whatsapp_alerts, name='whatsapp_alerts'),
+    path('alerts/whatsapp/<int:alert_id>/', views.alert_detail_whatsapp, name='alert_detail_whatsapp'),
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
     path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
@@ -106,6 +107,8 @@ urlpatterns = [
     path('bot_flow/bot_edit/<int:bot_id>/', views.edit_bot, name='edit_bot'),
 
 
-    path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails')
-    
+    path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails'),
+    path('send_scheduled_phone_calls/', views.send_scheduled_phone_calls, name='send_scheduled_phone_calls'),
+    path('send_whatsapp_alerts/', views.send_whatsapp_alerts, name='send_whatsapp_alerts'),
+    path('update_whatsapp_alert/<int:alert_id>/', views.update_whatsapp_alert, name='update_whatsapp_alert')
 ]

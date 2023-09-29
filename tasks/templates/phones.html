@@ -1,29 +1,169 @@
-{% extends 'base.html' %} {% block content %}
-
+{% extends 'base.html' %}
+{% block content %}
+{{ form.media }}
 <main class="container">
   <div class="row">
-    <div class="col-md-6 offset-md-3">
+    <div class="col-md-8">
+      <!-- Columna principal para mostrar las listas -->
       <div class="card card-body mt-3">
-        <h4 class="text-center display-7 py-5">
-          Notificaciones programadas de llamadas
+        <h4 class="font-weight-bold py-3 mb-4 text-center">
+          Notificaciones programadas de Teléfono
         </h4>
-        <ul class="list-group">
-          {% for phone in phones %}
-          <a class="list-group-item" href="{% url 'phone_detail' phone.id %}">
-            <header class="d-flex justify-content-between">
-              {% if task.important %}
-              <h5 class="fw-bold text-success display-9">{{phone.tittle}}</h5>
-              {% else %}
-              <h5 class="fw-bold text-primary display-9">{{phone.tittle}}</h5>
-              {% endif %}
-              <p>{{phone.message}}</p>
-            </header>
-          </a>
-          {% endfor %}
-        </ul>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="text-center">Notificaciones pendientes</h5>
+            <ul class="list-group">
+              {% for phone in pending_phones %}
+              <a class="list-group-item" href="{% url 'phone_detail' phone.id %}">
+                <header class="d-flex justify-content-between">
+                  {% if phone.important %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{phone.tittle}}
+                  </h5>
+                  {% else %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{phone.tittle}}
+                  </h5>
+                  {% endif %}
+                  <p>{{phone.message}}</p>
+                </header>
+              </a>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="col-md-12 mt-3">
+            <h5 class="text-center">Notificaciones completadas</h5>
+            <ul class="list-group">
+              {% for phone in completed_phone %}
+              <a class="list-group-item" href="{% url 'phone_detail' phone.id %}">
+                <header class="d-flex justify-content-between">
+                  {% if phone.important %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{phone.tittle}}
+                  </h5>
+                  {% else %}
+                  <h5 class="fw-bold text-success display-9">
+                    {{phone.tittle}}
+                  </h5>
+                  {% endif %}
+                  <p>{{phone.message}}</p>
+                </header>
+              </a>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <!-- Columna para el formulario estático -->
+      <div class="card card-body mt-3">
+        <h4 class="text-center display-7 py-2 text-dark">
+          Crear nueva notificación de Teléfono
+        </h4>
+        <!-- Formulario de creación de notificación de Teléfono -->
+        <form
+          action="{% url 'phones' %}"
+          method="POST"
+          enctype="multipart/form-data"
+          name="crear-formulario-PhoneNotification"
+        >
+          {% csrf_token %}
+          <label for="id_tittle">Título:</label>
+          <input
+            type="text"
+            name="tittle"
+            class="form-control"
+            placeholder="Escribe un título"
+            maxlength="100"
+            required=""
+          />
+
+          <label for="id_message">Mensaje:</label>
+          <textarea
+            name="message"
+            cols="10"
+            rows="3"
+            class="form-control"
+            placeholder="Escribe tu mensaje"
+          ></textarea>
+          <br />
+          Destinatarios:
+          <br />
+          <br />
+          <label for="id_to">Invididuales:</label>
+          <textarea
+            name="to"
+            cols="10"
+            rows="3"
+            class="form-control"
+            placeholder="Escribe tu contacto"
+          ></textarea>
+
+          <label for="id_groups">Seleccionar Grupos:</label>
+          <div id="group-selection-container">
+            <select name="groups[]" class="form-control">
+              <option value="">Selecciona un grupo</option>
+              {% for grupo in grupos %}
+                <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <br />
+          <button type="button" id="add-group-button" class="btn btn-primary">Agregar Grupo</button>
+          <br />
+          <label for="id_dateprogramed">Fecha programada:</label>
+          <div class="input-group dbdp">
+            <input
+              type="text"
+              name="dateprogramed"
+              id="id_dateprogramed"
+              data-dbdp-config='{"variant": "datetime", "backend_date_format": "YYYY-MM-DD HH:mm:ss", "options": {"format": "YYYY-MM-DD HH:mm", "showClose": true, "showClear": true, "showTodayButton": true}}'
+              data-dbdp-debug=""
+              data-name="dateprogramed"
+            />
+
+            <div class="input-group-addon input-group-append input-group-text">
+              <i class="bi-calendar"></i>
+            </div>
+          </div>
+          <br />
+          <label for="id_important">Importante:</label>
+          <input
+            type="checkbox"
+            name="important"
+            class="form-check-input m-auto"
+            id="id_importante"
+          />
+
+          <br />
+          <button type="submit" class="btn btn-primary">
+            Crear notificación de Teléfono
+          </button>
+        </form>
       </div>
     </div>
   </div>
 </main>
-
+<script>
+  $(document).ready(function() {
+    var groupCount = 1; // Comienza con un campo de selección
+  
+    // Manejar el evento clic en el botón "Agregar Grupo"
+    $('#add-group-button').click(function() {
+      groupCount++; // Incrementar el contador de grupos
+      var groupSelectHtml = `
+        <select name="groups[]" class="form-control">
+          <option value="">Selecciona un grupo</option>
+          {% for grupo in grupos %}
+            <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+          {% endfor %}
+        </select>
+      `;
+  
+      // Agregar la selección de grupo al contenedor
+      $('#group-selection-container').append(groupSelectHtml);
+    });
+  });
+  </script>
 {% endblock %}

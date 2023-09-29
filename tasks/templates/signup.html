@@ -13,16 +13,16 @@
           />
         </div>
         <hr />
-        <h4 class="text-center">Create an account</h4>
+        <h4 class="text-center">Crear una cuenta </h4>
         {{error}} {% csrf_token %}
         <div class="mb-3" style="text-align: left">
-          <label for="username">Username:</label>
+          <label for="username">Nombre de usuario:</label>
           <input
             type="text"
             name="username"
             id="username"
             class="form-control"
-            placeholder="Write your username"
+            placeholder="Escriba su nombre de usuario"
           />
         </div>
         <div class="mb-3" style="text-align: left">
@@ -32,30 +32,30 @@
             name="email"
             id="email"
             class="form-control"
-            placeholder="Write your mail"
+            placeholder="Escriba su Email"
           />
         </div>
         <div class="mb-3" style="text-align: left">
-          <label for="password1">Password:</label>
+          <label for="password1">Contraseña:</label>
           <input
             type="password"
             name="password1"
             id="password1"
             class="form-control"
-            placeholder="Write your password"
+            placeholder="Escriba su contraseña"
           />
         </div>
         <div class="mb-3" style="text-align: left">
-          <label for="password2">Confirm your password:</label>
+          <label for="password2">Repita su contraseña:</label>
           <input
             type="password"
             name="password2"
             id="password2"
             class="form-control"
-            placeholder="Confirm your password"
+            placeholder="Confirme su contraseña"
           />
         </div>
-        <button class="btn btn-primary">Submit</button>
+        <button class="btn btn-primary">Registrarse</button>
       </form>
     </div>
   </div>

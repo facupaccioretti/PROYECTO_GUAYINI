@@ -2,9 +2,11 @@
 <main class="container">
   <div class="row">
     <div class="col-md-8">
-      <h4 class="font-weight-bold py-3 mb-4 text-center">Notificaciones programadas de WhatsApp</h4>
       <!-- Columna principal para mostrar las listas -->
       <div class="card card-body mt-3">
+        <h4 class="font-weight-bold py-3 mb-4 text-center">
+          Notificaciones programadas de WhatsApp
+        </h4>
         <div class="row">
           <div class="col-md-12">
             <h5 class="text-center">Notificaciones pendientes</h5>
@@ -83,10 +85,10 @@
             class="form-control"
             placeholder="Escribe tu mensaje"
           ></textarea>
-          <br>
+          <br />
           Destinatarios:
-          <br>
-          <br>
+          <br />
+          <br />
           <label for="id_to">Invididuales:</label>
           <textarea
             name="to"
@@ -96,14 +98,18 @@
             placeholder="Escribe tu contacto"
           ></textarea>
 
-          <label for="id_groups">Grupos:</label>
-          <textarea
-            name="groups"
-            cols="10"
-            rows="3"
-            class="form-control"
-            placeholder="Escribe tu grupo de contactos"
-          ></textarea>
+          <label for="id_groups">Seleccionar Grupos:</label>
+          <div id="group-selection-container">
+            <select name="groups[]" class="form-control">
+              <option value="">Selecciona un grupo</option>
+              {% for grupo in grupos %}
+                <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <br />
+          <button type="button" id="add-group-button" class="btn btn-primary">Agregar Grupo</button>
+          <br />
           <label for="id_dateprogramed">Fecha programada:</label>
           <div class="input-group dbdp">
             <input
@@ -119,6 +125,7 @@
               <i class="bi-calendar"></i>
             </div>
           </div>
+          <br />
           <label for="id_important">Importante:</label>
           <input
             type="checkbox"
@@ -136,4 +143,28 @@
     </div>
   </div>
 </main>
+<script>
+  $(document).ready(function() {
+    var groupCount = 1; // Comienza con un campo de selección
+  
+    // Manejar el evento clic en el botón "Agregar Grupo"
+    $('#add-group-button').click(function() {
+      groupCount++; // Incrementar el contador de grupos
+      var groupSelectHtml = `
+        <select name="groups[]" class="form-control">
+          <option value="">Selecciona un grupo</option>
+          {% for grupo in grupos %}
+            <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+          {% endfor %}
+        </select>
+      `;
+  
+      // Agregar la selección de grupo al contenedor
+      $('#group-selection-container').append(groupSelectHtml);
+    });
+  });
+  </script>
 {% endblock %}
+
+
+

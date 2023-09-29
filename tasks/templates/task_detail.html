@@ -1,41 +1,160 @@
-{% extends 'base.html' %}
-
-{% block content %}
-
+{% extends 'base.html' %} {% block content %}
 <main class="container">
   <div class="row">
     <div class="col-md-4 offset-md-4">
-      {{task.tittle}}
-      {{error}}
-      <div>
+      {{ error }}
+      <div class="card card-body mt-2">
+        <h4 class="font-weight-bold py-3 mb-4 text-center">
+          Detalle de la notificación programada de WhatsApp:
+        </h4>
         <form method="POST">
-          {% csrf_token %}
-          {{ form.media }}
-          {{form.as_p}}
-  
-          <button class="btn btn-primary">
-            Update
-          </button>
+          {% csrf_token %} {{ form.media }}
+          <div class="form-group">
+            <label for="{{ form.tittle.id_for_label }}">Título:</label>
+            {{ form.tittle }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.message.id_for_label }}">Mensaje:</label>
+            <textarea
+              name="{{ form.message.name }}"
+              id="{{ form.message.id_for_label }}"
+              class="form-control"
+              rows="2"
+            >{{ form.message.value }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.to.id_for_label }}"
+              >Destinatarios (individuales):</label
+            >
+            {{ form.to }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.groups.id_for_label }}">Seleccionar Grupos:</label>
+            <div id="group-selection-container">
+              {% for grupo in grupos_seleccionados %}
+              <select name="groups[]" class="form-control">
+                <option value="">Selecciona un grupo</option>
+                {% for other_group in grupos %} 
+                  <option value="{{ other_group.id }}" {% if other_group.id == grupo.id %}selected{% endif %}>{{ other_group.groupname }}</option>
+                {% endfor %}
+              </select>
+              {% endfor %}
+            </div>
+            <br />
+            <button
+              type="button"
+              id="add-group-button"
+              class="btn btn-primary"
+            >
+              Agregar Grupo
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.dateprogramed.id_for_label }}"
+              >Fecha programada:</label
+            >
+            {{ form.dateprogramed }}
+          </div>
+
+          <div class="form-check">
+            <input
+              type="checkbox"
+              name="{{ form.important.name }}"
+              id="{{ form.important.id_for_label }}"
+              class="form-check-input"
+              {%
+              if
+              task.important
+              %}checked{%
+              endif
+              %}
+            />
+            <label
+              class="form-check-label"
+              for="{{ form.important.id_for_label }}"
+              >Importante</label
+            >
+          </div>
+
+          <button class="btn btn-primary">Actualizar</button>
         </form>
-  
+
         <form action="{% url 'complete_task' task.id %}" method="POST">
           {% csrf_token %}
-          <button class="btn btn-success">
-            complete
-          </button>
+          <button class="btn btn-success">complete</button>
         </form>
-  
+
         <form action="{% url 'delete_task' task.id %}" method="POST">
           {% csrf_token %}
-          <button class="btn btn-danger">
-            delete
-          </button>
+          <button class="btn btn-danger">delete</button>
+        </form>
       </div>
-      
-      </form>
     </div>
   </div>
-
 </main>
+
+<script>
+  $(document).ready(function () {
+   var groupCount = {{ grupos_seleccionados|length }}; // Comienza con el número de grupos seleccionados
+   var gruposSeleccionados = {{ grupos_seleccionados|safe }}; // Obtener grupos seleccionados como objeto JSON
+
+   // Función para agregar una lista desplegable adicional
+   function addGroupDropdown(selectedGroupId) {
+     var groupSelectHtml = `
+       <select name="groups[]" class="form-control">
+         <option value="">Selecciona un grupo</option>
+         {% for grupo in grupos %}
+         <option value="{{ grupo.id }}" {% if grupo.id == selectedGroupId %}selected{% endif %}>{{ grupo.groupname }}</option>
+         {% endfor %}
+       </select>
+     `;
+
+     // Agregar la selección de grupo al contenedor
+     $("#group-selection-container").append(groupSelectHtml);
+   }
+
+   // Manejar el evento clic en el botón "Agregar Grupo"
+   $("#add-group-button").click(function () {
+     groupCount++; // Incrementar el contador de grupos
+
+     // Obtener el ID del grupo seleccionado actualmente en la última lista desplegable
+     var lastSelectedGroupId = $("select[name='groups[]']:last").val();
+
+     // Agregar una lista desplegable adicional con el mismo grupo seleccionado
+     addGroupDropdown(lastSelectedGroupId);
+   });
+
+   // Inicialmente, agregar listas desplegables adicionales con los grupos seleccionados
+   for (var i = 1; i < groupCount; i++) {
+     addGroupDropdown(gruposSeleccionados[i]);
+   }
+ });
+</script>
+
+<script>
+  $(document).ready(function () {
+    var groupCount = {{ grupos_seleccionados|length }}; // Comienza con el número de grupos seleccionados
+
+    // Manejar el evento clic en el botón "Agregar Grupo"
+    $("#add-group-button").click(function () {
+      groupCount++; // Incrementar el contador de grupos
+      var groupSelectHtml = `
+        <select name="groups[]" class="form-control">
+          <option value="">Selecciona un grupo</option>
+          {% for grupo in grupos %}
+          <option value="{{ grupo.id }}">{{ grupo.groupname }}</option>
+          {% endfor %}
+        </select>
+      `;
+
+      // Agregar la selección de grupo al contenedor
+      $("#group-selection-container").append(groupSelectHtml);
+    });
+  });
+</script>
 
 {% endblock %}

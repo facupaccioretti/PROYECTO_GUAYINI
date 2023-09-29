@@ -5,8 +5,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, AlertForm
-from .models import Mail, Task, Phone, Group, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert
+from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, WhatsappAlertForm
+from .models import Mail, Task, Phone, Group, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert, WhatsappAlert
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -44,10 +44,62 @@ timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
 # Create your views here.
 @login_required
 def groups(request):
+    # Obtener los grupos existentes
     whatsappgroups = WhatsappGroup.objects.filter(user=request.user)
     mailgroups = MailGroup.objects.filter(user=request.user)
     phonegroups = PhoneGroup.objects.filter(user=request.user)
-    return render(request, "groups.html", {'whatsappgroups': whatsappgroups, 'mailgroups': mailgroups, 'phonegroups': phonegroups})
+
+    # Inicializar los formularios
+    whatsapp_form = WhatsappGroupForm()
+    mail_form = MailGroupForm()
+    phone_form = PhoneGroupForm()
+
+    if request.method == "POST":
+        if "whatsapp_form_submit" in request.POST:
+            print("WhatsApp Form submitted")
+            whatsapp_form = WhatsappGroupForm(request.POST)
+            if whatsapp_form.is_valid():
+                print("WhatsApp Form is valid")
+                # Procesar el formulario de WhatsApp y guardar el grupo
+                whatsapp_group = whatsapp_form.save(commit=False)
+                whatsapp_group.user = request.user
+                whatsapp_group.save()
+                print("WhatsApp Group saved successfully")
+                return redirect('groups')
+            else:
+                print("WhatsApp Form is not valid")
+
+        
+        elif "mail_form_submit" in request.POST:
+            # El formulario de Mail se envió
+            mail_form = MailGroupForm(request.POST)
+            if mail_form.is_valid():
+                # Procesar el formulario de Mail y guardar el grupo
+                mail_group = mail_form.save(commit=False)
+                mail_group.user = request.user
+                mail_group.save()
+                return redirect('groups')
+        
+        elif "phone_form_submit" in request.POST:
+            # El formulario de Phone se envió
+            phone_form = PhoneGroupForm(request.POST)
+            if phone_form.is_valid():
+                # Procesar el formulario de Phone y guardar el grupo
+                phone_group = phone_form.save(commit=False)
+                phone_group.user = request.user
+                phone_group.save()
+                return redirect('groups')
+
+    context = {
+        'whatsapp_form': whatsapp_form,
+        'mail_form': mail_form,
+        'phone_form': phone_form,
+        'whatsappgroups': whatsappgroups,
+        'mailgroups': mailgroups,
+        'phonegroups': phonegroups,
+    }
+
+    return render(request, "groups.html", context)
 
 @login_required
 def create_groups(request): 
@@ -98,6 +150,7 @@ def signin(request):
     if request.method == 'GET':
         response = requests.get('https://guayini.com/send_scheduled_messages_facebook/')
         response2 = requests.get('https://guayini.com/send_scheduled_emails/')
+        response3 = requests.get('https://guayini.com/send_scheduled_phone_calls/')
         return render(request, 'signin.html',{
             'form': AuthenticationForm
         })
@@ -131,20 +184,37 @@ def profile(request):
     # WHATSAPP VIEWS:
 @login_required
 def tasks(request):
-    tasks = Task.objects.filter(user=request.user)
+    tasks = Task.objects.filter(user=request.user).order_by('-created')
     completed_tasks = [task for task in tasks if task.datecompleted]
     pending_tasks = [task for task in tasks if not task.datecompleted]
+    grupos = WhatsappGroup.objects.filter(user=request.user)  # Filtrar grupos del usuario actual
 
     if request.method == "POST":
-        print(request.POST)
+        
+        
         form = TaskForm(request.POST)
+        
         if form.is_valid():
             new_task = form.save(commit=False)
             new_task.user = request.user
-            new_task.save()
+            new_task.save()  # Guardar el objeto Task primero para obtener su ID
+            
+            selected_group_ids = request.POST.getlist('groups[]')
+            
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = WhatsappGroup.objects.get(groupname=group_id)
+                        new_task.groups.add(grupo)  # Agregar grupos seleccionados a la tarea
+                    except WhatsappGroup.DoesNotExist:
+                        # Manejar el caso en que el grupo no exista en la base de datos
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+            
+            new_task.save()  # Guardar la tarea nuevamente con los grupos seleccionados
             return redirect('tasks')
         else:
             print(form.errors)  # Esto mostrará los errores de validación en la consola de desarrollo
+
     else:
         form = TaskForm()
 
@@ -152,10 +222,10 @@ def tasks(request):
         'completed_tasks': completed_tasks,
         'pending_tasks': pending_tasks,
         'form': form,
+        'grupos': grupos,
     }
 
     return render(request, 'tasks.html', context)
-
 
 @login_required
 def create_task(request):
@@ -181,15 +251,34 @@ def tasks_completed(request):
 def task_detail(request, task_id):
     if request.method == 'GET':
         task = get_object_or_404(Task, pk=task_id, user=request.user)
+        task.dateprogramed = task.dateprogramed.strftime("%Y-%m-%d %H:%M:%S") if task.dateprogramed else ""
+        grupos = WhatsappGroup.objects.filter(user=request.user)
         form = TaskForm(instance=task)
-        return render(request, 'task_detail.html', {'task': task, 'form': form})
+        # Obtener los grupos seleccionados en la tarea
+        grupos_seleccionados = task.groups.all()
+        print("Grupos Seleccionados:", grupos_seleccionados)  # Agrega este print para verificar grupos seleccionados
+        return render(
+            request,
+            'task_detail.html',
+            {'task': task, 'grupos': grupos, 'form': form, 'grupos_seleccionados': grupos_seleccionados}
+        )
     else:
         try:
             task = get_object_or_404(Task, pk=task_id, user=request.user)
             form = TaskForm(request.POST, instance=task)
+
+            # Actualizar los grupos seleccionados en el objeto 'task'
+            selected_group_ids = request.POST.getlist('groups[]')
+            task.groups.set(selected_group_ids)
+            
+            print("Selected Group IDs:", selected_group_ids)  # Agrega este print para verificar los IDs de los grupos seleccionados
+            print("Task Groups:", task.groups.all())  # Agrega este print para verificar los grupos en el objeto task
+
             form.save()
+            print("Form:", form.cleaned_data)  # Agrega este print para verificar los datos del formulario
             return redirect('tasks')
         except ValueError:
+            print("Form Errors:", form.errors)  # Agrega este print para verificar los errores del formulario
             return render(request, 'task_detail.html', {'task': task, 'form': form, 'error': 'Error updating task.'})
 
 @login_required
@@ -217,22 +306,55 @@ def mails(request):
     now = timezone.now().astimezone(tz)
     
     # Filtrar correos que aún no han sido enviados y tienen fecha programada igual o posterior a hoy
-    mails = Mail.objects.filter(user=request.user, dateprogramed__gte=now)
+    mails = Mail.objects.filter(user=request.user, dateprogramed__gte=now).order_by('-created')
     return render(request, 'mails.html', {'mails': mails})
 
-@login_required
 def create_mail(request):
-    if request.method == "GET": 
-        return render(request, 'create_mails.html', {"form": MailForm})
+    context = {}
+
+    if request.method == "GET":
+        grupos = MailGroup.objects.filter(user=request.user)
+        context["form"] = MailForm
+        context['grupos'] = grupos
+        return render(request, 'create_mails.html', context)
     else:
         try:
             form = MailForm(request.POST)
-            new_mail = form.save(commit=False)
-            new_mail.user = request.user
-            new_mail.save()
-            return redirect('mails')
+            if form.is_valid():
+                new_mail = form.save(commit=False)
+                new_mail.user = request.user
+
+                # Verifica si se seleccionaron grupos en el formulario
+                selected_group_ids = request.POST.getlist('groups[]')
+                if selected_group_ids and any(selected_group_ids):
+                    cleaned_groups = [group.strip("[]\"'") for group in selected_group_ids]
+                else:
+                    cleaned_groups = []
+
+                print(cleaned_groups)
+                new_mail.save()
+
+                # Agrega grupos solo si se seleccionaron en el formulario
+                if cleaned_groups:
+                    print(cleaned_groups)
+                    for group_name in cleaned_groups:
+                        print(group_name)
+                        try:
+                            group = MailGroup.objects.get(groupname=group_name, user=request.user)
+                            print(group)
+                            new_mail.groups.add(group)
+                        except MailGroup.DoesNotExist:
+                            print(f"El grupo '{group_name}' no existe.")
+                
+                return redirect('mails')
+            else:
+                print(form.errors)
+                context["form"] = form
+                return render(request, 'create_mails.html', context)
         except ValueError:
-            return render(request, 'create_mails.html', {"form": MailForm, "error": "Error creating mail."})
+            context["form"] = MailForm
+            context["error"] = "Error creating mail."
+            return render(request, 'create_mails.html', context)
 
 @login_required
 def mails_completed(request):
@@ -242,22 +364,40 @@ def mails_completed(request):
     now = timezone.now().astimezone(tz)
     
     # Filtrar correos cuya fecha programada es anterior al día de hoy y han sido completados
-    mails = Mail.objects.filter(user=request.user, dateprogramed__lt=now)
+    mails = Mail.objects.filter(user=request.user, dateprogramed__lt=now).order_by('-created')
     return render(request, 'mails.html', {'mails': mails})
 
-@login_required        
+@login_required
 def mail_detail(request, mail_id):
     if request.method == 'GET':
         mail = get_object_or_404(Mail, pk=mail_id, user=request.user)
+        mail.dateprogramed = mail.dateprogramed.strftime("%Y-%m-%d %H:%M:%S") if mail.dateprogramed else ""
+        grupos = MailGroup.objects.filter(user=request.user)
         form = MailForm(instance=mail)
-        return render(request, 'mail_detail.html', {'mail': mail, 'form': form})
+        # Obtener los grupos seleccionados en el correo
+        grupos_seleccionados = mail.groups.all()
+        print(grupos)
+        print(grupos_seleccionados)
+        return render(
+            request,
+            'mail_detail.html',
+            {'mail': mail, 'grupos': grupos, 'form': form, 'grupos_seleccionados': grupos_seleccionados}
+        )
     else:
         try:
             mail = get_object_or_404(Mail, pk=mail_id, user=request.user)
             form = MailForm(request.POST, instance=mail)
+
+            # Actualizar los grupos seleccionados en el objeto 'mail'
+            selected_group_ids = request.POST.getlist('groups[]')
+            mail.groups.set(selected_group_ids)
+
             form.save()
+            print(form)
+            print(form.errors)
             return redirect('mails')
         except ValueError:
+            print(form.errors)
             return render(request, 'mail_detail.html', {'mail': mail, 'form': form, 'error': 'Error updating mail.'})
 
 @login_required
@@ -278,10 +418,47 @@ def delete_mail(request, mail_id):
 # NOTIFICATION VIEWS:
     # PHONE VIEWS:
 
-@login_required 
+@login_required
 def phones(request):
-    phones = Phone.objects.filter(user=request.user)    
-    return render(request, 'phones.html', {'phones': phones})
+    phones = Phone.objects.filter(user=request.user)
+    completed_phones = [phone for phone in phones if phone.datecompleted]
+    pending_phones = [phone for phone in phones if not phone.datecompleted]
+    grupos = PhoneGroup.objects.filter(user=request.user)  # Filtrar grupos del usuario actual   
+    
+    if request.method == "POST":
+        print(request.POST)
+        
+        form = PhoneForm(request.POST)
+        
+        if form.is_valid():
+            new_phone = form.save(commit=False)
+            new_phone.user = request.user
+            new_phone.save()  # Guardar el objeto phone primero para obtener su ID
+            
+            selected_group_ids = request.POST.getlist('groups[]')
+            
+            for group_id in selected_group_ids:
+                try:
+                    grupo = PhoneGroup.objects.get(groupname=group_id)
+                    new_phone.groups.add(grupo)  # Agregar grupos seleccionados a la notificación de teléfono
+                except PhoneGroup.DoesNotExist:
+                    # Manejar el caso en el que un grupo no exista
+                    pass
+            
+            new_phone.save()  # Guardar la notificación de teléfono nuevamente con los grupos seleccionados
+            return redirect('phones')
+        else:
+            print(form.errors)  # Esto mostrará los errores de validación en la consola de desarrollo
+    else:
+        form = PhoneForm()
+
+    context = {
+        'completed_phones': completed_phones,
+        'pending_phones': pending_phones,
+        'form': form,
+        'grupos': grupos,
+    }
+    return render(request, 'phones.html', context)
 
 @login_required
 def create_phone(request):
@@ -561,13 +738,13 @@ def send_scheduled_messages_twilio(request):
                     from_='whatsapp:' + settings.TWILIO_COETEC_NUMBER,
                     to=f'whatsapp:' + number.strip()  # eliminar espacios en blanco en el número
                 )
-        groups = task.groups.split(";")
+        groups = task.groups.split(",")
         for group in groups:
             print(f"Procesando grupo {group}")
             try:
                 whatsapp_group = WhatsappGroup.objects.get(groupname=group.strip())
                 print(f"Grupo encontrado: {whatsapp_group}")
-                for number in whatsapp_group.members.split(";"):
+                for number in whatsapp_group.members.split(","):
                     print(f"Enviando mensaje a {number}")
                     message = client.messages.create(
                         body=task.message,
@@ -1626,7 +1803,7 @@ def send_scheduled_messages_facebook(request):
         # Envía los mensajes de WhatsApp
         for task in tasks:
             to_list = task.to.split(",") if task.to else []
-            groups_list = task.groups.split(",") if task.groups else []
+            groups_list = task.groups.all()
 
             # Enviar mensajes a números individuales
             for number in to_list:
@@ -1668,51 +1845,49 @@ def send_scheduled_messages_facebook(request):
 
             # Enviar mensajes a grupos
             for group in groups_list:
-                print(f"Enviando mensaje al grupo: {group}")
-                try:
-                    group_obj = WhatsappGroup.objects.get(groupname=group)
-                    members = group_obj.members.split(",") if group_obj.members else []
+                print(f"Enviando mensaje al grupo: {group.groupname}")
+                members = group.members.split(",") if group.members else []
 
-                    for number in members:
-                        print(f"Enviando mensaje a {number}")
+                for number in members:
+                    print(f"Enviando mensaje a {number}")
 
-                        data = {
-                            "messaging_product": "whatsapp",
-                            "to": number,
-                            "type": "template",
-                            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
-                            "template": {
-                                "name": "notificaciones_marketing",
-                                "language": {
-                                    "code": "es_AR"
-                                },
-                                "components": [
-                                    {
-                                        "type": "body",
-                                        "parameters": [
-                                            {
-                                                "type": "text",
-                                                "text": task.message
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                    data = {
+                        "messaging_product": "whatsapp",
+                        "to": number,
+                        "type": "template",
+                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                        "template": {
+                            "name": "notificaciones_marketing",
+                            "language": {
+                                "code": "es_AR"
+                            },
+                            "components": [
+                                {
+                                    "type": "body",
+                                    "parameters": [
+                                        {
+                                            "type": "text",
+                                            "text": task.message
+                                        }
+                                    ]
+                                }
+                            ]
                         }
+                    }
 
-                        response = requests.post(url, headers=headers, json=data)
-                        if response.status_code == 200:
-                            # Marca la tarea como completada
-                            task.datecompleted = timezone.now()
-                            task.status = 'sent'
-                            task.save()
-                except Group.DoesNotExist:
-                    print(f"El grupo {group} no existe.")
+                    response = requests.post(url, headers=headers, json=data)
+                    if response.status_code == 200:
+                        # Marca la tarea como completada
+                        task.datecompleted = timezone.now()
+                        task.status = 'sent'
+                        task.save()
+            # Fin del bucle de grupos
+
         return JsonResponse({'mensaje': 'Mensajes enviados exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
     
-
+    
 @login_required
 def chats(request):
         # Obtener el usuario actualmente autenticado
@@ -1781,49 +1956,87 @@ def alerts(request):
 
 
 @login_required
-def alerts_list(request):
-    alerts = Alert.objects.filter(user=request.user)
+def whatsapp_alerts(request):
+    alerts = WhatsappAlert.objects.filter(user=request.user).order_by('-created')
+    grupos = WhatsappGroup.objects.filter(user=request.user)  # Filtrar grupos del usuario actual
 
     if request.method == "POST":
-        form = AlertForm(request.POST, request.FILES)
+        form = WhatsappAlertForm(request.POST, request.FILES)
         if form.is_valid():
             new_alert = form.save(commit=False)
             new_alert.user = request.user
             new_alert.save()
-            return redirect('alerts_list')
-    else:
-        form = AlertForm()
 
-    return render(request, 'alerts_list.html', {'alerts': alerts, 'form': form})
+            selected_group_ids = request.POST.getlist('groups[]')
+            
+            if selected_group_ids:
+                            for group_id in selected_group_ids:
+                                try:
+                                    grupo = WhatsappGroup.objects.get(groupname=group_id)
+                                    new_alert.groups.add(grupo)  # Agregar grupos seleccionados a la tarea
+                                except WhatsappGroup.DoesNotExist:
+                                    # Manejar el caso en que el grupo no exista en la base de datos
+                                    print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            new_alert.save()  # Guardar la alerta de WhatsApp nuevamente con los grupos seleccionados (si los hay)
+            return redirect('whatsapp_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)  # Esto mostrará los errores de validación en la consola de desarrollo
+    else:
+        form = WhatsappAlertForm()
+
+    context = {
+        'alerts': alerts,
+        'form': form,
+        'grupos': grupos,
+    }
+
+    return render(request, 'whatsapp_alerts.html', context)
+
+@login_required
+def update_whatsapp_alert(request, alert_id):
+    alert = get_object_or_404(WhatsappAlert, id=alert_id, user=request.user)
+
+    if request.method == "POST":
+        form = WhatsappAlertForm(request.POST, instance=alert)
+        if form.is_valid():
+            form.save()
+            return redirect('whatsapp_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)
+
+    return redirect('whatsapp_alerts')  # Redireccionar a la lista de alertas
 
 
 @login_required
-def alert_detail(request, alert_id):
+def alert_detail_whatsapp(request, alert_id):
     alert = get_object_or_404(Alert, id=alert_id, user=request.user)
     
     if request.method == "POST":
-        form = AlertForm(request.POST, instance=alert)
+        form = WhatsappAlertForm(request.POST, instance=alert)
         if form.is_valid():
             form.save()
             return redirect('alert_list')
     else:
-        form = AlertForm(instance=alert)
+        form = WhatsappAlertForm(instance=alert)
 
     return render(request, 'alert_detail.html', {'alert': alert, 'form': form})
 
 @login_required
 def create_alert(request):
     if request.method == "GET": 
-        return render(request, 'create_alerts.html', {"form": AlertForm()})
+        return render(request, 'create_alerts.html', {"form": WhatsappAlertForm()})
     else:
         try:
-            form = AlertForm(request.POST, request.FILES)
+            form = WhatsappAlertForm(request.POST, request.FILES)
             new_alert = form.save(commit=False)
             new_alert.user = request.user
             new_alert.save()
             return redirect('alerts_list')
         except ValueError:
-            return render(request, 'create_alerts.html', {"form": AlertForm(), "error": "Error creating alert."})
+            return render(request, 'create_alerts.html', {"form": WhatsappAlertForm(), "error": "Error creating alert."})
 
 @login_required
 def complete_alert(request, alert_id):
@@ -1841,6 +2054,7 @@ def delete_alert(request, alert_id):
         return redirect('alert_list')
     
     return render(request, 'delete_alert.html', {'alert': alert})
+
 
 #BOTFLOW
 
@@ -1924,30 +2138,37 @@ def send_scheduled_emails(request):
     if request.method == 'GET':
         # Obtén todos los correos electrónicos programados que aún no se han enviado
         emails = Mail.objects.filter(dateprogramed__lte=timezone.now(), datecompleted__isnull=True)
+        print('LOS EMAILS A ENVIAR SON:')
 
         # Define la URL de la API de EnvialoSimple
         api_url = "https://api.envialosimple.email/api/v1/mail/send"
 
         # Define las cabeceras de la solicitud
         headers = {
-            'Authorization': 'Bearer <tu_token_de_autenticacion>',
+            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2OTUyMzQyODQsImV4cCI6NDg1MDkwNzg4NCwicm9sZXMiOlsiUk9MRV9BRE1JTiIsIlJPTEVfVVNFUiJdLCJraWQiOiI2NTBiMzhlYzk3OTE2MjFmMWMwNmMyODAiLCJhaWQiOiI2NGZmMmVjMTdiMTdmZmVhNDYwMzQ2ZTgiLCJ1c2VybmFtZSI6ImJyaWFuXzExXzkyQGhvdG1haWwuY29tIn0.eJVeRQBypyAYjj9Eu3iLCSggDlOb4cIr4r-3-liCLTothyuZyWgXrF_I6cncLBylzrWMY2YUuwI_EbWUPKxTFvTy5_SivjCABBYyvoMljnDtVMgYYbWu0D0n1IBBvLiP51s1BpY-znza-wEZWntBpayLF3guH_0dUJM9GWAr-3mszyQ9udfpaU7QnQKRgkz24sH91HkVSoitXypqto23B-nF_doLKr6GPo9WjcUEjmg-jnc_u764AiGgdXcB-xBYWlv3p7OhQG2qRsIqYC9hfN5UfaeQMIAiw8PExkSQ5O_U1d5uNQesX1kYF6XArKUOlGNbxPDeBrnEbwBjtQnO0w',
             'Content-Type': 'application/json'
         }
 
         for email in emails:
-            # Dividir las direcciones de correo electrónico por ";"
-            email_addresses = email.adress.split(";")
+            print(email.tittle)
+            # Dividir las direcciones de correo electrónico por ","
+            email_addresses = email.adress.split(",")
+            print('enviando a los mails: ')
+            print(email_address)
 
             # Incluir miembros del grupo si se seleccionó un grupo
-            if email.groups:
-                group = MailGroup.objects.get(pk=email.groups)
-                group_members = group.members.split(";")
+            if email.groups.exists():
+                print('existen grupos en esta notificacion, son: ')
+                group = email.groups.first()  # Obtiene el primer grupo asociado al correo
+                group_members = group.members.split(",")
+                print(group_members)
                 email_addresses.extend(group_members)
+
 
             for email_address in email_addresses:
                 # Resto de tu código para enviar el correo electrónico, similar a como lo tenías antes
                 email_data = {
-                    "from": "notificaciones@empresa.com",
+                    "from": "notificaciones@guayini.com",
                     "to": email_address.strip(),  # Limpiar espacios en blanco
                     "subject": email.subject,
                     "html": email.message,
@@ -1959,12 +2180,218 @@ def send_scheduled_emails(request):
 
                 # Realiza la solicitud POST a la API de EnvialoSimple
                 response = requests.post(api_url, headers=headers, data=payload)
-
+                print('La respuesta de envialosimple fue:')
+                print(response.content)
                 if response.status_code == 200:
                     # Marca el correo electrónico como enviado
                     email.datecompleted = timezone.now()
                     email.save()
 
         return JsonResponse({'mensaje': 'Correos electrónicos enviados exitosamente'})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+    
+@csrf_exempt
+def send_scheduled_phone_calls(request):
+    if request.method == 'GET':
+        # Obtén todas las notificaciones programadas de llamadas que aún no se han completado
+        phone_calls = Phone.objects.filter(dateprogramed__lte=timezone.now(), datecompleted=None)
+
+        # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
+        tz = pytz.timezone("America/Argentina/Cordoba")
+        now = timezone.now().astimezone(tz)
+
+        client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)  # Reemplaza 'YOUR_ACCESS_KEY' con tu propia clave de acceso de MessageBird
+        success_count = 0
+        error_count = 0
+
+        for phone_call in phone_calls:
+            to_list = phone_call.to.split(",") if phone_call.to else []
+            groups_list = [group.groupname for group in phone_call.groups.all()]
+
+            # Enviar llamadas a números individuales
+            for number in to_list:
+                print(f"Enviando llamada a: {number}")
+                try:
+                    callFlow = {
+                        'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
+                        'destination': number,
+                        'callFlow': {
+                            'steps': [
+                                {
+                                    'action': 'say',
+                                    'options': {
+                                        'payload': phone_call.message,
+                                        'language': 'es-mx',
+                                        'voice': 'female'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+
+                    response = client.call_create(**callFlow, webhook=None)
+                    success_count += 1
+                    print(response)
+
+                    if response.data.status == 'queued':
+                        call_id = response.data.id
+                        print('La información de la llamada es la siguiente:')
+                        print(call_id)
+                        print('Esperando 30 segundos para verificar si contestaron la llamada o no')
+                        time.sleep(30)
+
+                        try:
+                            call = client.call(call_id)
+                            print('  id                : %s' % call.data.id)
+                            print('  status            : %s' % call.data.status)
+                            print('  source            : %s' % call.data.source)
+                            print('  destination       : %s' % call.data.destination)
+                        except messagebird.client.ErrorException as e:
+                            print('Ocurrió un error al obtener información de la llamada:')
+                            for error in e.errors:
+                                print('  code        : %d' % error.code)
+                                print('  description : %s' % error.description)
+
+                        if call.data.status == 'no_answer':
+                            # Si la llamada no se contestó y hay números auxiliares, realizar llamadas auxiliares
+                            numeros_auxiliares = phone_call.numbersaux.split(",") if phone_call.numbersaux else []
+                            for numero_auxiliar in numeros_auxiliares:
+                                print(f'Llamada no contestada, llamando a: {numero_auxiliar}')
+                                callFlow = {
+                                    'source': '5493518008514',
+                                    'destination': numero_auxiliar,
+                                    'callFlow': {
+                                        'steps': [
+                                            {
+                                                'action': 'say',
+                                                'options': {
+                                                    'payload': phone_call.message,
+                                                    'language': 'es-mx',
+                                                    'voice': 'female'
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                                response = client.call_create(**callFlow, webhook=None)
+                                success_count += 1
+                                print(response)
+                except messagebird.client.ErrorException as e:
+                    print("Error al enviar la llamada:", e)
+                    error_count += 1
+
+            # Enviar llamadas a grupos
+            for group in groups_list:
+                print(f"Enviando llamada al grupo: {group}")
+                try:
+                    whatsapp_group = WhatsappGroup.objects.get(groupname=group.strip())
+                    print(f"Grupo encontrado: {whatsapp_group}")
+                    for number in whatsapp_group.members.split(","):
+                        print(f"Llamando a {number}")
+                        try:
+                            callFlow = {
+                                'source': '5493518008514',  # Reemplaza 'YOUR_CALLER_ID' con tu propio ID de llamante
+                                'destination': number,
+                                'callFlow': {
+                                    'steps': [
+                                        {
+                                            'action': 'say',
+                                            'options': {
+                                                'payload': phone_call.message,
+                                                'language': 'es-mx',
+                                                'voice': 'female'
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+
+                            response = client.call_create(**callFlow)
+                            success_count += 1
+                            print(response)
+                        except messagebird.client.ErrorException as e:
+                            print("Error al enviar la llamada:", e)
+                            error_count += 1
+                except WhatsappGroup.DoesNotExist:
+                    print(f"Grupo no encontrado: {group.strip()}")
+                    error_count += 1
+
+            # Marca la llamada como completada
+            phone_call.datecompleted = timezone.now()
+            phone_call.save()
+
+        return JsonResponse({'mensaje': 'Llamadas enviadas exitosamente: {}'.format(success_count),
+                             'errores': error_count})
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+    
+
+
+@csrf_exempt
+def send_whatsapp_alerts(request):
+    if request.method == 'POST':
+        selected_alert_ids = request.POST.getlist('selected_alerts[]')
+
+        # URL y encabezados de la solicitud a la API de Facebook
+        url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+        headers = {
+            'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        }
+
+        for alert_id in selected_alert_ids:
+            try:
+                alert = WhatsappAlert.objects.get(id=alert_id)
+
+                # Construir el mensaje de WhatsApp
+                message = f"{alert.body}"
+
+                # Obtener la lista de destinatarios, que incluye tanto 'to' como los miembros de grupos
+                recipients = []
+                recipients.extend(alert.to.split(",") if alert.to else [])
+                for group in alert.groups.all():
+                    recipients.extend(group.members.split(","))
+
+                # Enviar mensajes de WhatsApp a cada destinatario
+                for recipient in recipients:
+                    if recipient:
+                        data = {
+                            "messaging_product": "whatsapp",
+                            "to": recipient,
+                            "type": "template",
+                            "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                            "template": {
+                                "name": "notificaciones_marketing",
+                                "language": {
+                                    "code": "es_AR"
+                                },
+                                "components": [
+                                    {
+                                        "type": "body",
+                                        "parameters": [
+                                            {
+                                                "type": "text",
+                                                "text": message
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+
+                        response = requests.post(url, headers=headers, json=data)
+                        print(response)
+                        if response.status_code == 200:
+                            # Incrementar el contador de envíos y actualizar la fecha del último envío
+                            alert.increase_sent_count()
+                    else:
+                        print("Destinatario no válido:", recipient)
+
+            except WhatsappAlert.DoesNotExist:
+                # Manejar el caso en que la alerta no exista en la base de datos
+                print(f"La alerta con ID {alert_id} no existe en la base de datos.")
+
+        return JsonResponse({'mensaje': 'Alertas de WhatsApp enviadas exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})

@@ -9,7 +9,9 @@
     <div class="container bootdey mt-2">
       <div class="email-app mb-4">
         <nav>
-          <a href="{% url 'mails' %}" class="btn btn-danger btn-block">Lista de Emails</a>
+          <a href="{% url 'mails' %}" class="btn btn-danger btn-block"
+            >Lista de Emails</a
+          >
           <ul class="nav">
             <li class="nav-item">
               <a class="nav-link" href="{% url 'mails' %}"
@@ -17,7 +19,9 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'mail_completed' %}"><i class="fa fa-rocket"></i> Enviados</a>
+              <a class="nav-link" href="{% url 'mail_completed' %}"
+                ><i class="fa fa-rocket"></i> Enviados</a
+              >
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#"
@@ -65,16 +69,132 @@
               </button>
             </div>
           </div>
-          <form action="{% url 'create_mails' %}" method="POST" class="card card-body">
-            <h5>Nueva notificacion:</h5>
-            {% csrf_token %} {{error}} {{ form.media }} {{form}}
+          <h5>Nueva notificacion de email:</h5>
+          {{ form.media }}
+          <form
+            action="{% url 'create_mails' %}"
+            method="POST"
+            enctype="multipart/form-data"
+            name="crear-formulario-EmailNotification"
+            class="card card-body"
+          >
+            {% csrf_token %}
+            <label for="id_tittle">Título:</label>
+            <input
+              type="text"
+              name="tittle"
+              class="form-control"
+              placeholder="Escribe un título"
+              maxlength="100"
+              required=""
+            />
+            <label for="id_subject">Asunto:</label>
+            <input
+              type="text"
+              name="subject"
+              class="form-control"
+              placeholder="Escribe el asunto del correo"
+              maxlength="100"
+              required=""
+            />
+            <label for="id_message">Mensaje:</label>
+            <textarea
+              name="message"
+              cols="10"
+              rows="3"
+              class="form-control"
+              placeholder="Escribe tu mensaje"
+            ></textarea>
             <br />
-            <button class="btn btn-primary">Save</button>
+            Destinatarios:
+            <br />
+            <br />
+            <label for="id_adress">Invididuales:</label>
+            <textarea
+              name="adress"
+              cols="10"
+              rows="3"
+              class="form-control"
+              placeholder="Escribe tu contacto"
+            ></textarea>
+
+            <label for="id_groups">Seleccionar Grupos:</label>
+            <div id="group-selection-container">
+              <select name="groups[]" class="form-control">
+                <option value="">Selecciona un grupo</option>
+                {% for grupo in grupos %}
+                <option value="{{ grupo.groupname }}">
+                  {{ grupo.groupname }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <br />
+            <button type="button" id="add-group-button" class="btn btn-primary">
+              Agregar Grupo
+            </button>
+            <br />
+            <label for="id_dateprogramed">Fecha programada:</label>
+            <div class="input-group dbdp">
+              <input
+                type="text"
+                name="dateprogramed"
+                id="id_dateprogramed"
+                data-dbdp-config='{"variant": "datetime", "backend_date_format": "YYYY-MM-DD HH:mm:ss", "options": {"format": "YYYY-MM-DD HH:mm", "showClose": true, "showClear": true, "showTodayButton": true}}'
+                data-dbdp-debug=""
+                data-name="dateprogramed"
+              />
+
+              <div
+                class="input-group-addon input-group-append input-group-text"
+              >
+                <i class="bi-calendar"></i>
+              </div>
+            </div>
+            <br />
+            <div class="form-group form-check">
+              <div class="row">
+                <label for="id_importante" class="form-check-label"
+                  >Importante:</label
+                >
+                <input
+                  type="checkbox"
+                  name="important"
+                  class="form-check-input"
+                  id="id_importante"
+                />
+              </div>
+            </div>
+
+            <br />
+            <button type="submit" class="btn btn-primary">
+              Crear notificación de Email
+            </button>
           </form>
         </main>
       </div>
     </div>
   </div>
 </main>
+<script>
+  $(document).ready(function () {
+    var groupCount = 1; // Comienza con un campo de selección
 
+    // Manejar el evento clic en el botón "Agregar Grupo"
+    $("#add-group-button").click(function () {
+      groupCount++; // Incrementar el contador de grupos
+      var groupSelectHtml = `
+        <select name="groups[]" class="form-control">
+          <option value="">Selecciona un grupo</option>
+          {% for grupo in grupos %}
+            <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+          {% endfor %}
+        </select>
+      `;
+
+      // Agregar la selección de grupo al contenedor
+      $("#group-selection-container").append(groupSelectHtml);
+    });
+  });
+</script>
 {% endblock %}

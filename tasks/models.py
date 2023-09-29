@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from mptt.models import MPTTModel, TreeForeignKey
+from django.utils import timezone
 
 # Create your models here.
 class Alert(models.Model):
@@ -13,6 +14,49 @@ class Alert(models.Model):
     created = models.DateTimeField(auto_now_add=True)  # blank true
     def __str__(self):
         return self.tittle + '-by ' + self.user.username
+
+class WhatsappAlert(models.Model):
+    tittle = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    body = models.TextField()
+    to = models.TextField(blank=True)
+    groups = models.ManyToManyField('WhatsappGroup', blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    sent_count = models.PositiveIntegerField(default=0)  # Contador de envíos
+    last_sent = models.DateTimeField(null=True, blank=True)  # Fecha del último envío
+
+    def __str__(self):
+        return self.tittle + '-by ' + self.user.username
+
+    def increase_sent_count(self):
+        """
+        Incrementa el contador de envíos y actualiza la fecha del último envío.
+        """
+        self.sent_count += 1
+        self.last_sent = timezone.now()
+        self.save()
+
+class MailAlert(models.Model):
+    tittle = models.CharField(max_length=100)
+    address = models.EmailField(blank=True)
+    body = models.TextField()
+    description = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)  # blank true
+    def __str__(self):
+        return self.tittle + '-by ' + self.user.username
+
+class PhoneAlert(models.Model):
+    tittle = models.CharField(max_length=100)
+    to = models.TextField(blank=True)
+    body = models.TextField()
+    description = models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)  # blank true
+    def __str__(self):
+        return self.tittle + '-by ' + self.user.username
+
 
 class Contact(models.Model):
     name = models.CharField(max_length=100)
@@ -111,7 +155,7 @@ class Task(models.Model):
     important = models.BooleanField(default=False)
     to = models.TextField(blank=True)
     sender = models.TextField(blank=True)
-    groups = models.TextField(blank=True)
+    groups = models.ManyToManyField('WhatsappGroup', blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -127,7 +171,7 @@ class Mail(models.Model):
     datecompleted = models.DateTimeField(null=True, blank = True)
     important = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    groups = models.TextField(blank=True)
+    groups = models.ManyToManyField('MailGroup', blank=True)
 
     def __str__(self):
         return self.tittle + '-by ' + self.user.username
@@ -135,11 +179,12 @@ class Mail(models.Model):
 class Phone(models.Model):
     tittle = models.CharField(max_length=100)
     message = models.TextField(blank=True)
-    subject = models.CharField(max_length=200)
-    adress = models.EmailField(blank = True)
+    to = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     dateprogramed = models.DateTimeField(null = True, blank = True)
+    datecompleted = models.DateTimeField(null=True, blank = True)
     important = models.BooleanField(default=False)
+    groups = models.ManyToManyField('PhoneGroup', blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

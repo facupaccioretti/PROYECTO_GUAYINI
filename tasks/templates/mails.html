@@ -71,11 +71,11 @@
             <li class="message unread">
               <a href="{% url 'mail_detail' mail.id %}" style="text-decoration: none">
                 <div class="header">
-                  <span class="from">{{ mail.adress }}</span>
+                  <span class="title">{{ mail.tittle }}</span>
                   <span class="date">
                     <span class="fa fa-paper-clip"></span> {{ mail.dateprogramed }}</span>
                 </div>
-                <div class="title">{{ mail.tittle }}</div>
+                <div class="from">{{ mail.adress }}</div>
                 <div class="description">{{ mail.subject }}</div>
               </a>
             </li>

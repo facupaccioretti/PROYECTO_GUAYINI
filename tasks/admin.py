@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, Bots, Contact, Alert, Group, AccessToken
+from .models import Task, Mail, Phone, WhatsappGroup, MailGroup, PhoneGroup, Bots, Contact, Alert, WhatsappAlert, Group, AccessToken
 
 
 class ReadOnlyCreatedAdmin(admin.ModelAdmin):
@@ -38,6 +38,9 @@ class GroupAdmin(ReadOnlyCreatedAdmin):
 class AccessTokenAdmin(ReadOnlyCreatedAdmin):
     pass
 
+class WhatsappAlertAdmin(ReadOnlyCreatedAdmin):
+    pass
+
 # Register your models here.
 
 admin.site.register(Task, TaskAdmin)
@@ -51,3 +54,4 @@ admin.site.register(Alert, AlertAdmin)
 admin.site.register(Bots, BotsAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Contact, ContactAdmin)
+admin.site.register(WhatsappAlert, WhatsappAlertAdmin)

@@ -1,0 +1,285 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card card-body mt-3">
+        <h4 class="font-weight-bold py-3 mb-4 text-center">
+          Alertas de WhatsApp programadas
+        </h4>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="text-center">Alertas creadas</h5>
+            <ul class="list-group">
+              {% for alert in alerts %}
+              <a
+                class="list-group-item"
+                data-toggle="modal"
+                data-target="#alertModal{{ alert.id }}"
+              >
+                <header class="d-flex justify-content-between">
+                  <h5 class="fw-bold text-success display-9">
+                    {{ alert.tittle }}
+                  </h5>
+                  <p>{{ alert.body }}</p>
+                </header>
+              </a>
+
+              <!-- Modal para mostrar detalles y enviar la alerta -->
+              <div
+                class="modal fade"
+                id="alertModal{{ alert.id }}"
+                tabindex="-1"
+                role="dialog"
+                aria-labelledby="alertModalLabel{{ alert.id }}"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5
+                        class="modal-title"
+                        id="alertModalLabel{{ alert.id }}"
+                      >
+                        Detalles de la Alerta
+                      </h5>
+                      <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                      >
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <!-- Campos editables -->
+                      <form
+                        action="{% url 'update_whatsapp_alert' alert.id %}"
+                        method="POST"
+                      >
+                        {% csrf_token %}
+                        <input
+                          type="hidden"
+                          name="alert_id"
+                          value="{{ alert.id }}"
+                        />
+                        <div class="form-group">
+                          <label for="edit_tittle{{ alert.id }}"
+                            >Título de la Alerta</label
+                          >
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="edit_tittle{{ alert.id }}"
+                            name="tittle"
+                            value="{{ alert.tittle }}"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label for="edit_description{{ alert.id }}"
+                            >Descripción:</label
+                          >
+                          <textarea
+                            class="form-control"
+                            id="edit_description{{ alert.id }}"
+                            name="description"
+                          >
+{{ alert.description }}</textarea
+                          >
+                        </div>
+                        <div class="form-group">
+                          <label for="edit_body{{ alert.id }}">Mensaje:</label>
+                          <textarea
+                            class="form-control"
+                            id="edit_body{{ alert.id }}"
+                            name="body"
+                          >
+{{ alert.body }}</textarea
+                          >
+                        </div>
+                        <div class="form-group">
+                          <label for="id_to">Para:</label>
+                          <input
+                              type="text"
+                              class="form-control form-control-sm"
+                              id="id_to"
+                              name="to"
+                              value="{{ alert.to }}"
+                              placeholder="Ingrese los números a los cuales enviar las alertas"
+                          />
+                      </div>
+                      <div class="form-group">
+                          <label for="id_groups">Seleccionar Grupos:</label>
+                          <select name="groups" class="form-control">
+                              <option value="">Selecciona un grupo</option>
+                              {% for grupo in grupos %}
+                              <option value="{{ grupo.groupname }}" {% if grupo.groupname == alert.groups %}selected{% endif %}>
+                                  {{ grupo.groupname }}
+                              </option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                        <button type="submit" class="btn btn-primary">
+                          Actualizar Alerta
+                        </button>
+                      </form>
+
+                      <!-- Campos no editables -->
+                      <p>Cantidad de Envíos: {{ alert.send_count }}</p>
+                      <p>Último Envío: {{ alert.last_send }}</p>
+                    </div>
+                    <div class="modal-footer">
+                      <!-- Formulario para enviar la alerta -->
+                      <form
+                        action="{% url 'send_whatsapp_alerts' %}"
+                        method="POST"
+                      >
+                        {% csrf_token %}
+                        <input
+                          type="hidden"
+                          name="selected_alerts[]"
+                          value="{{ alert.id }}"
+                        />
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          data-dismiss="modal"
+                        >
+                          Cerrar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                          Enviar Alerta
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-body mt-3">
+        <h4 class="text-center display-7 py-2 text-dark">
+          Crear nueva alerta de WhatsApp
+        </h4>
+        <form
+          action="{% url 'whatsapp_alerts' %}"
+          method="POST"
+          enctype="multipart/form-data"
+          name="create-alert-form"
+        >
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="id_tittle">Título de la Alerta</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="id_tittle"
+              name="tittle"
+              placeholder="Ingrese el título"
+            />
+          </div>
+          <div class="form-group">
+            <label for="id_description">Descripción:</label>
+            <textarea
+              class="form-control form-control-sm"
+              id="id_description"
+              name="description"
+              rows="3"
+              placeholder="Ingrese la descripción"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="id_body">Mensaje:</label>
+            <textarea
+              class="form-control form-control-sm"
+              id="id_body"
+              name="body"
+              rows="3"
+              placeholder="Ingrese el cuerpo del mensaje"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="id_to">Para:</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="id_to"
+              name="to"
+              placeholder="Ingrese los números a los cuales enviar las alertas"
+            />
+          </div>
+          <label for="id_groups">Seleccionar Grupos:</label>
+          <div id="group-selection-container">
+            <select name="groups[]" class="form-control">
+              <option value="">Selecciona un grupo</option>
+              {% for grupo in grupos %}
+              <option value="{{ grupo.groupname }}">
+                {{ grupo.groupname }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="button" id="add-group-button" class="btn btn-primary">
+            Agregar Grupo
+          </button>
+          <button type="submit" class="btn btn-primary">Crear Alerta</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  $(document).ready(function () {
+    // Manejar el clic en el botón "Enviar Alerta"
+    $(".send-alert-button").click(function () {
+      var alertId = $(this).data("alert-id");
+      var confirmation = confirm(
+        "¿Está seguro de enviar esta alerta a todos los contactos asignados?"
+      );
+      if (confirmation) {
+        // Enviar una solicitud POST para enviar la alerta
+        $.ajax({
+          type: "POST",
+          url: "{% url 'send_whatsapp_alerts' %}",
+          data: {
+            selected_alerts: [alertId],
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+          },
+          success: function (response) {
+            // Manejar la respuesta del servidor (puede mostrar un mensaje de éxito, etc.)
+            alert(response.mensaje);
+          },
+          error: function (xhr, textStatus, error) {
+            // Manejar errores si es necesario
+            console.error(xhr.statusText);
+          },
+        });
+      }
+    });
+
+    var groupCount = 1; // Comienza con un campo de selección
+
+    // Manejar el evento clic en el botón "Agregar Grupo"
+    $("#add-group-button").click(function () {
+      groupCount++; // Incrementar el contador de grupos
+      var groupSelectHtml = `
+        <select name="groups[]" class="form-control">
+          <option value="">Selecciona un grupo</option>
+          {% for grupo in grupos %}
+            <option value="{{ grupo.groupname }}">{{ grupo.groupname }}</option>
+          {% endfor %}
+        </select>
+      `;
+
+      // Agregar la selección de grupo al contenedor
+      $("#group-selection-container").append(groupSelectHtml);
+    });
+  });
+</script>
+
+{% endblock %}
