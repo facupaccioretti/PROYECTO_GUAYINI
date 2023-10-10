@@ -12,8 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime, timedelta, timezone
 from django.shortcuts import render
 from twilio.rest import Client
 from django.conf import settings
@@ -36,10 +35,15 @@ from itertools import groupby
 from operator import attrgetter
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as sendgridMail
+from heyoo import WhatsApp
+from django.db.models import Q
+import pytz
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 # Agregar esta línea para definir el timezone por defecto
-timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
+# timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
 
 # Create your views here.
 @login_required
@@ -1892,7 +1896,6 @@ def send_scheduled_messages_facebook(request):
 def chats(request):
         # Obtener el usuario actualmente autenticado
     user = request.user
-
     # Obtener los contactos del usuario
     contactos = Contact.objects.filter(user=user)
 
@@ -2397,3 +2400,202 @@ def send_whatsapp_alerts(request):
         return JsonResponse({'mensaje': 'Alertas de WhatsApp enviadas exitosamente'})
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+      
+@login_required
+def send_whatsapp(request, number, message):
+    #messenger = WhatsApp(settings.FACEBOOK_AUTH_TOKEN,settings.FACEBOOK_SENDER_NUMBER_1)
+    # Numero de telefono a donde enviar el mensaje 
+    destinyNumber = int(number)
+    messageToSend = message
+    # For sending a Text message
+    #messenger.send_message(mensaje, str(to))
+    # Guardar mensaje enviado en la base de datos --- modificar para que se mande con request y no con heyoo
+    # Enviar el mensaje usando la API de Facebook
+    url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
+    headers = {
+        'Authorization': f'Bearer {settings.FACEBOOK_AUTH_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    #Busco el ultimo mensaje enviado por el usuario a este numero. Si pasaron + de 24 hs o no hay mensajes debo enviar un 
+    # mensaje del tipo template
+    try:
+        ultimo_mensaje = Task.objects.filter(user=request.user, to=destinyNumber).latest('created')
+        print(ultimo_mensaje)
+
+    except Task.DoesNotExist:
+                # Maneja el caso si el mensaje no existe en la base de datos
+                ultimo_mensaje = None
+    # Datos del mensaje a enviar
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": destinyNumber,
+        "type": "text",
+        "text": { 
+            "body": messageToSend
+        }
+    }
+
+    tz = pytz.timezone('UTC')
+    
+    if ultimo_mensaje is None or (datetime.now(tz) - ultimo_mensaje.created >= timedelta(hours=24)):
+        data = {
+                        "messaging_product": "whatsapp",
+                        "to": destinyNumber,
+                        "type": "template",
+                        "sender": settings.FACEBOOK_SENDER_NUMBER_1,
+                        "template": {
+                            "name": "blank_template",
+                            "language": {
+                                "code": "es_AR"
+                            },
+                            "components": [
+                                {
+                                    "type": "body",
+                                    "parameters": [
+                                        {
+                                            "type": "text",
+                                            "text": messageToSend
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                }
+
+    # Enviar el mensaje usando la API de Facebook
+    response = requests.post(url, headers=headers, json=data)
+    print('Respuesta de Facebook:')
+    print(response.text)    
+
+    if response.status_code == 200:
+        # El mensaje se envió correctamente, puedes asignar los valores correspondientes al mensaje en tu base de datos
+        response_data = response.json()
+        if "messages" in response_data and len(response_data["messages"]) > 0:
+            message_id = response_data["messages"][0]["id"]
+        else: 
+            message_id = 0
+        mensaje = Task.objects.create(
+            wamID=message_id,
+            tittle='',
+            message=messageToSend,
+            status='sent',
+            created=datetime.now(),
+            Type='text',
+            datecompleted=None,
+            dateprogramed=None,
+            important=False,
+            to=destinyNumber,
+            sender=settings.FACEBOOK_SENDER_NUMBER_1,
+            groups='',
+            user=request.user
+        )
+        mensaje.save()
+        print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
+        return JsonResponse({'message': 'mensaje enviado'})
+    else:
+        # Ocurrió un error al enviar el mensaje
+        # Puedes manejar el error de acuerdo a tus necesidades
+        pass
+
+@csrf_exempt
+def receive_whatsapp(request):
+    if request.method == 'GET':
+        # VERIFICACION FACEBOOK
+        # Obtiene los parámetros de consulta de la URL
+        hub_mode = request.GET.get('hub.mode')
+        hub_challenge = request.GET.get('hub.challenge')
+        hub_verify_token = request.GET.get('hub.verify_token')
+
+        # Verifica el valor de hub.verify_token con tu cadena de token configurada
+        if hub_verify_token == 'TOKENTEST':
+            # Responde con el valor hub.challenge para completar la verificación
+            return HttpResponse(hub_challenge, content_type='text/plain')
+        else:
+            # Si el token de verificación no coincide, responde con un código de estado 403 (Prohibido)
+            return HttpResponse(status=403)
+    
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        print(request.POST)
+
+        # Verifica si es una respuesta a un mensaje enviado previamente
+        if 'statuses' in data['entry'][0]['changes'][0]['value']:
+            # Es una respuesta a un mensaje enviado previamente
+            print("Es una actualizacion de estado de un mensaje anterior")
+            message_id = data['entry'][0]['changes'][0]['value']['statuses'][0]['id']
+            status = data['entry'][0]['changes'][0]['value']['statuses'][0]['status']
+
+            # Busca el mensaje en tu base de datos usando el campo wamID
+            try:
+                mensaje = Task.objects.get(wamID=message_id)
+                mensaje.status = status
+                mensaje.save()
+            except Task.DoesNotExist:
+                # Maneja el caso si el mensaje no existe en la base de datos
+                pass
+        else:
+            # Es una notificación de un nuevo mensaje recibido
+            wa_id = data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+            message_id = data['entry'][0]['changes'][0]['value']['messages'][0]['id']
+
+            # Verificar si el ID del mensaje ya ha sido procesado
+            if Task.objects.filter(wamID=message_id).exists():
+                print(f"Mensaje {message_id} ya ha sido procesado. Ignorando...")
+                return HttpResponse(status=200)  # Omitir el procesamiento si ya existe
+
+            timestamp = int(data['entry'][0]['changes'][0]['value']['messages'][0]['timestamp'])
+            message_text = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+            status = 'received'
+
+            #Tomamos el numero de telefono y el mensaje
+            _from = data['entry'][0]['changes'][0]['value']['messages'][0]['from']
+            mensaje = "Telefono:"+data['entry'][0]['changes'][0]['value']['messages'][0]['from']
+            mensaje+= "| Mensaje:"+message_text
+
+            print(f"Mensaje recibido:" + mensaje)
+            user = User.objects.get(username="facebook") 
+
+            # Crea una nueva instancia del modelo Task y guarda los datos
+            mensaje = Task(
+                wamID=message_id,
+                tittle='',
+                message=message_text,
+                status=status,
+                created=datetime.fromtimestamp(timestamp),
+                Type='',
+                datecompleted=None,
+                dateprogramed=None,
+                important=False,
+                to=wa_id,
+                sender=_from,
+                groups='',
+                user=user
+            )
+            mensaje.save()
+            print(f"Mensaje {message_id} procesado y guardado en la base de datos.")
+        
+        channel_layer = get_channel_layer()
+        print(channel_layer)
+        async_to_sync(channel_layer.group_send)(
+        'tasks',
+        {
+            'type': 'send_message',
+            'message': mensaje.message,
+        }
+    )
+        return HttpResponse(status=200)
+    else:
+        # Responde con un código de estado 405 (Método no permitido) para otras solicitudes HTTP
+        return HttpResponse(status=405)
+
+def get_messages(request, contact_number):
+    # Realiza la consulta en la base de datos para recuperar los mensajes
+    messages = Task.objects.filter(Q(to=contact_number) | Q(sender=contact_number)).order_by('created')
+    # Puedes serializar los mensajes si es necesario
+    serialized_messages = [{'message': msg.message, 'status': msg.status, 'created':msg.created} for msg in messages]
+    
+    return JsonResponse(serialized_messages, safe=False)
+
+

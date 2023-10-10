@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     #'celery',
     'huey.contrib.djhuey',
     'mptt',
-    'tasks'
+    'tasks',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -79,11 +80,20 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'GUAYINI.wsgi.application'
+ASGI_APPLICATION = 'GUAYINI.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,7 +111,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
+"""
 
 
 # Password validation
@@ -165,6 +175,7 @@ MESSAGEBIRD_CHANNEL_ID = '3cb926d1-6926-457a-ac06-fa4c42bfefe5'
 MESSAGEBIRD_CHANNEL_ID_SECONDARY = '779e3365-f297-451c-a74b-b3ffa91c3fe7'
 MESSAGEBIRD_ORIGINATOR = '5493518008514'
 FACEBOOK_AUTH_TOKEN = 'EAAJEmjUBMUABOZBdzBLb0U37OihFnVdA00Fj2IZB7omrkQeug91nrR8srh7VpLbs7oQhW0ZC4Npw938TdZAfE5FZB00KrZCWr68G3BOQDvQA4pykJAhZCcmB5Yw2JZBfm1GjstJZBaQvMK535jZCnBLyrpppxtXncOPAIo5TYtJKrZAXWOgqHBTvZAiZAPKj8wMH50rYm'
+
 # NUMERO GUAYINI:  +54 9 3515 99-3031
 FACEBOOK_SENDER_NUMBER_1 = 102289356257975
 
