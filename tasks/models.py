@@ -39,13 +39,26 @@ class WhatsappAlert(models.Model):
 
 class MailAlert(models.Model):
     tittle = models.CharField(max_length=100)
+    subject = models.CharField(max_length=200, blank=True)
     address = models.EmailField(blank=True)
     body = models.TextField()
     description = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    groups =  models.ManyToManyField('MailGroup', blank=True)
     created = models.DateTimeField(auto_now_add=True)  # blank true
+    sent_count = models.PositiveIntegerField(default=0)  # Contador de envíos
+    last_sent = models.DateTimeField(null=True, blank=True)  # Fecha del último envío
+    
     def __str__(self):
         return self.tittle + '-by ' + self.user.username
+    def increase_sent_count(self):
+        """
+        Incrementa el contador de envíos y actualiza la fecha del último envío.
+        """
+        self.sent_count += 1
+        self.last_sent = timezone.now()
+        self.save()
+
 
 class PhoneAlert(models.Model):
     tittle = models.CharField(max_length=100)
@@ -53,9 +66,20 @@ class PhoneAlert(models.Model):
     body = models.TextField()
     description = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    groups = models.ManyToManyField('PhoneGroup', blank=True)
     created = models.DateTimeField(auto_now_add=True)  # blank true
+    sent_count = models.PositiveIntegerField(default=0)  # Contador de envíos
+    last_sent = models.DateTimeField(null=True, blank=True)  # Fecha del último envío
+    
     def __str__(self):
         return self.tittle + '-by ' + self.user.username
+    def increase_sent_count(self):
+        """
+        Incrementa el contador de envíos y actualiza la fecha del último envío.
+        """
+        self.sent_count += 1
+        self.last_sent = timezone.now()
+        self.save()
 
 
 class Contact(models.Model):

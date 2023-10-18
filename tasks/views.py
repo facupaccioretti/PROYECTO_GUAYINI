@@ -5,8 +5,8 @@ from django.contrib.auth.views import PasswordChangeView
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, WhatsappAlertForm
-from .models import Mail, Task, Phone, Group, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert, WhatsappAlert
+from .forms import TaskForm, MailForm, PhoneForm, WhatsappGroupForm, MailGroupForm, PhoneGroupForm, BotForm, ContactForm, WhatsappAlertForm, MailAlertForm, PhoneAlertForm
+from .models import Mail, Task, Phone, Group, WhatsappGroup, MailGroup, PhoneGroup, AccessToken, Bots, Contact, Alert, WhatsappAlert, MailAlert, PhoneAlert
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
@@ -36,7 +36,7 @@ from itertools import groupby
 from operator import attrgetter
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as sendgridMail
-
+from django.template.loader import render_to_string
 
 # Agregar esta línea para definir el timezone por defecto
 timezone.activate(pytz.timezone('America/Argentina/Buenos_Aires'))
@@ -1958,7 +1958,7 @@ def alerts(request):
 @login_required
 def whatsapp_alerts(request):
     alerts = WhatsappAlert.objects.filter(user=request.user).order_by('-created')
-    grupos = WhatsappGroup.objects.filter(user=request.user)  # Filtrar grupos del usuario actual
+    grupos = WhatsappGroup.objects.filter(user=request.user)
 
     if request.method == "POST":
         form = WhatsappAlertForm(request.POST, request.FILES)
@@ -1968,21 +1968,20 @@ def whatsapp_alerts(request):
             new_alert.save()
 
             selected_group_ids = request.POST.getlist('groups[]')
-            
-            if selected_group_ids:
-                            for group_id in selected_group_ids:
-                                try:
-                                    grupo = WhatsappGroup.objects.get(groupname=group_id)
-                                    new_alert.groups.add(grupo)  # Agregar grupos seleccionados a la tarea
-                                except WhatsappGroup.DoesNotExist:
-                                    # Manejar el caso en que el grupo no exista en la base de datos
-                                    print(f"El grupo '{group_id}' no existe en la base de datos.")
 
-            new_alert.save()  # Guardar la alerta de WhatsApp nuevamente con los grupos seleccionados (si los hay)
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = WhatsappGroup.objects.get(groupname=group_id)
+                        new_alert.groups.add(grupo)
+                    except WhatsappGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            new_alert.save()
             return redirect('whatsapp_alerts')
         else:
             print('ERROR EN EL FORMULARIO')
-            print(form.errors)  # Esto mostrará los errores de validación en la consola de desarrollo
+            print(form.errors)
     else:
         form = WhatsappAlertForm()
 
@@ -1994,6 +1993,7 @@ def whatsapp_alerts(request):
 
     return render(request, 'whatsapp_alerts.html', context)
 
+
 @login_required
 def update_whatsapp_alert(request, alert_id):
     alert = get_object_or_404(WhatsappAlert, id=alert_id, user=request.user)
@@ -2001,14 +2001,40 @@ def update_whatsapp_alert(request, alert_id):
     if request.method == "POST":
         form = WhatsappAlertForm(request.POST, instance=alert)
         if form.is_valid():
-            form.save()
+            updated_alert = form.save(commit=False)
+
+            selected_group_ids = request.POST.getlist('groups[]')
+
+            updated_alert.groups.clear()
+
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = WhatsappGroup.objects.get(groupname=group_id)
+                        updated_alert.groups.add(grupo)
+                    except WhatsappGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            updated_alert.save()
             return redirect('whatsapp_alerts')
         else:
             print('ERROR EN EL FORMULARIO')
             print(form.errors)
 
-    return redirect('whatsapp_alerts')  # Redireccionar a la lista de alertas
+    return redirect('whatsapp_alerts')
 
+# Vista para ordenar las alertas de WhatsApp por fecha de creación
+def order_whatsapp_alerts_by_created(request):
+    alerts = WhatsappAlert.objects.filter(user=request.user).order_by('-created')
+    data = render_to_string('whatsapp_alerts.html', {'alerts': alerts})
+    return JsonResponse({'data': data})
+
+# Vista para ordenar las alertas de WhatsApp por última fecha de envío
+def order_whatsapp_alerts_by_last_sent(request):
+    alerts = WhatsappAlert.objects.filter(user=request.user).order_by('-last_sent')
+    data = render_to_string('whatsapp_alerts.html', {'alerts': alerts})
+    print(data)
+    return JsonResponse({'data': data})
 
 @login_required
 def alert_detail_whatsapp(request, alert_id):
@@ -2023,6 +2049,7 @@ def alert_detail_whatsapp(request, alert_id):
         form = WhatsappAlertForm(instance=alert)
 
     return render(request, 'alert_detail.html', {'alert': alert, 'form': form})
+
 
 @login_required
 def create_alert(request):
@@ -2055,6 +2082,155 @@ def delete_alert(request, alert_id):
     
     return render(request, 'delete_alert.html', {'alert': alert})
 
+
+#MAIL ALERTS
+@login_required
+def mail_alerts(request):
+    alerts = MailAlert.objects.filter(user=request.user).order_by('-created')
+    grupos = MailGroup.objects.filter(user=request.user)
+
+    if request.method == "POST":
+        form = MailAlertForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_alert = form.save(commit=False)
+            new_alert.user = request.user
+            new_alert.save()
+
+            selected_group_ids = request.POST.getlist('groups[]')
+
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = MailGroup.objects.get(groupname=group_id)
+                        new_alert.groups.add(grupo)
+                    except MailGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            new_alert.save()
+            return redirect('mail_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)
+    else:
+        form = MailAlertForm()
+
+    context = {
+        'alerts': alerts,
+        'form': form,
+        'grupos': grupos,
+    }
+
+    return render(request, 'mail_alerts.html', context)
+
+
+@login_required
+def update_mail_alert(request, alert_id):
+    alert = get_object_or_404(MailAlert, id=alert_id, user=request.user)
+
+    if request.method == "POST":
+        form = MailAlertForm(request.POST, instance=alert)
+        if form.is_valid():
+            updated_alert = form.save(commit=False)
+
+            selected_group_ids = request.POST.getlist('groups[]')
+
+            updated_alert.groups.clear()
+
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = MailGroup.objects.get(groupname=group_id)
+                        updated_alert.groups.add(grupo)
+                    except MailGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            updated_alert.save()
+            return redirect('mail_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)
+
+    return redirect('mail_alerts')
+
+
+@login_required
+def phone_alerts(request):
+    alerts = PhoneAlert.objects.filter(user=request.user).order_by('-created')
+    grupos = PhoneGroup.objects.filter(user=request.user)
+
+    if request.method == "POST":
+        form = PhoneAlertForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_alert = form.save(commit=False)
+            new_alert.user = request.user
+            new_alert.save()
+
+            selected_group_ids = request.POST.getlist('groups[]')
+
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = PhoneGroup.objects.get(groupname=group_id)
+                        new_alert.groups.add(grupo)
+                    except PhoneGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            new_alert.save()
+            return redirect('phone_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)
+    else:
+        form = PhoneAlertForm()
+
+    context = {
+        'alerts': alerts,
+        'form': form,
+        'grupos': grupos,
+    }
+
+    return render(request, 'phone_alerts.html', context)
+
+@login_required
+def update_phone_alert(request, alert_id):
+    alert = get_object_or_404(PhoneAlert, id=alert_id, user=request.user)
+
+    if request.method == "POST":
+        form = PhoneAlertForm(request.POST, instance=alert)
+        if form.is_valid():
+            updated_alert = form.save(commit=False)
+
+            selected_group_ids = request.POST.getlist('groups[]')
+
+            updated_alert.groups.clear()
+
+            if selected_group_ids:
+                for group_id in selected_group_ids:
+                    try:
+                        grupo = PhoneGroup.objects.get(groupname=group_id)
+                        updated_alert.groups.add(grupo)
+                    except PhoneGroup.DoesNotExist:
+                        print(f"El grupo '{group_id}' no existe en la base de datos.")
+
+            updated_alert.save()
+            return redirect('phone_alerts')
+        else:
+            print('ERROR EN EL FORMULARIO')
+            print(form.errors)
+
+    return redirect('phone_alerts')
+
+# Vista para ordenar las alertas por fecha de creación
+def order_phone_alerts_by_created(request):
+    alerts = PhoneAlert.objects.filter(user=request.user).order_by('-created')
+    data = render_to_string('phone_alerts.html', {'alerts': alerts})
+    return JsonResponse({'data': data})
+
+# Vista para ordenar las alertas por última fecha de uso
+def order_phone_alerts_by_last_sent(request):
+    alerts = PhoneAlert.objects.filter(user=request.user).order_by('-last_sent')
+    data = render_to_string('phone_alerts.html', {'alerts': alerts})
+    return JsonResponse({'data': data})
 
 #BOTFLOW
 
@@ -2394,6 +2570,146 @@ def send_whatsapp_alerts(request):
                 # Manejar el caso en que la alerta no exista en la base de datos
                 print(f"La alerta con ID {alert_id} no existe en la base de datos.")
 
-        return JsonResponse({'mensaje': 'Alertas de WhatsApp enviadas exitosamente'})
+        return redirect('whatsapp_alerts')
     else:
         return JsonResponse({'mensaje': 'Método no permitido'})
+    
+@csrf_exempt
+def send_mail_alerts(request):
+    if request.method == 'POST':
+        selected_alert_ids = request.POST.getlist('selected_alerts[]')
+
+        for alert_id in selected_alert_ids:
+            try:
+                alert = MailAlert.objects.get(id=alert_id)
+
+                # Construir el correo electrónico
+                email_subject = alert.subject
+                email_body = alert.body
+
+                # Obtener la lista de destinatarios, que incluye tanto 'address' como los miembros de grupos
+                recipients = []
+                recipients.extend(alert.address.split(",") if alert.address else [])
+                for group in alert.groups.all():
+                    group_members = group.members.split(",")
+                    recipients.extend(group_members)
+
+                # Enviar correos electrónicos a cada destinatario
+                for recipient in recipients:
+                    if recipient:
+                        email_data = {
+                            "from": "notificaciones@guayini.com",
+                            "to": recipient.strip(),  # Limpiar espacios en blanco
+                            "subject": email_subject,
+                            "html": email_body,
+                            # Puedes agregar más campos o personalización aquí según tus necesidades
+                        }
+
+                        # Define la URL de la API para enviar correos electrónicos
+                        api_url = "https://api.envialosimple.email/api/v1/mail/send"
+
+                        # Define las cabeceras de la solicitud
+                        headers = {
+                            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE2OTUyMzQyODQsImV4cCI6NDg1MDkwNzg4NCwicm9sZXMiOlsiUk9MRV9BRE1JTiIsIlJPTEVfVVNFUiJdLCJraWQiOiI2NTBiMzhlYzk3OTE2MjFmMWMwNmMyODAiLCJhaWQiOiI2NGZmMmVjMTdiMTdmZmVhNDYwMzQ2ZTgiLCJ1c2VybmFtZSI6ImJyaWFuXzExXzkyQGhvdG1haWwuY29tIn0.eJVeRQBypyAYjj9Eu3iLCSggDlOb4cIr4r-3-liCLTothyuZyWgXrF_I6cncLBylzrWMY2YUuwI_EbWUPKxTFvTy5_SivjCABBYyvoMljnDtVMgYYbWu0D0n1IBBvLiP51s1BpY-znza-wEZWntBpayLF3guH_0dUJM9GWAr-3mszyQ9udfpaU7QnQKRgkz24sH91HkVSoitXypqto23B-nF_doLKr6GPo9WjcUEjmg-jnc_u764AiGgdXcB-xBYWlv3p7OhQG2qRsIqYC9hfN5UfaeQMIAiw8PExkSQ5O_U1d5uNQesX1kYF6XArKUOlGNbxPDeBrnEbwBjtQnO0w',  # Reemplaza con tu token
+                            'Content-Type': 'application/json'
+                        }
+
+                        # Convierte los datos a formato JSON
+                        payload = json.dumps(email_data)
+
+                        # Realiza la solicitud POST a la API de EnvialoSimple
+                        response = requests.post(api_url, headers=headers, data=payload)
+
+                        print(response.status_code)
+                        print(response.json())
+
+                        if response.status_code == 200:
+                            # Incrementar el contador de envíos y actualizar la fecha del último envío
+                            alert.increase_sent_count()
+                        
+                    else:
+                        print("Dirección de correo no válida:", recipient)
+
+            except MailAlert.DoesNotExist:
+                # Manejar el caso en que la alerta de correo no exista en la base de datos
+                print(f"La alerta de correo con ID {alert_id} no existe en la base de datos.")
+
+        return redirect('mail_alerts')
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+    
+@csrf_exempt
+def send_phone_alerts(request):
+    if request.method == 'POST':
+        selected_alert_ids = request.POST.getlist('selected_alerts[]')
+
+        for alert_id in selected_alert_ids:
+            try:
+                alert = PhoneAlert.objects.get(id=alert_id)
+
+                # Construir el mensaje de la llamada
+                phone_message = alert.body
+
+                # Obtener la lista de destinatarios, que incluye tanto 'to' como los miembros de grupos
+                recipients = []
+                recipients.extend(alert.to.split(",") if alert.to else [])
+                for group in alert.groups.all():
+                    group_members = group.members.split(",")
+                    recipients.extend(group_members)
+
+                # Inicializar contadores para el éxito y errores
+                success_count = 0
+                error_count = 0
+
+                # Enviar llamadas telefónicas a cada destinatario
+                for recipient in recipients:
+                    if recipient:
+                        try:
+                            # Configurar los detalles de la llamada a través de la API de MessageBird
+                            call_payload = {
+                                "source": '5493518008514',  # Reemplaza con tu propio ID de llamante
+                                "destination": recipient,
+                                "voice": "female",
+                                "language": "es-MX",
+                                "ifMachine": "continue",  # Continuar la llamada si se detecta una máquina
+                                "record": "true",  # Grabar la llamada (opcional)
+                                "message": phone_message,
+                            }
+
+                            # Configura las cabeceras de la solicitud a la API de MessageBird
+                            headers = {
+                                'Authorization': 'AccessKey MESSAGEBIRD_ACCESS_KEY',  # Reemplaza con tu propia clave de acceso de MessageBird
+                                'Content-Type': 'application/json',
+                            }
+
+                            # Define la URL de la API de MessageBird para crear llamadas
+                            api_url = "https://voice.messagebird.com/calls"
+
+                            # Realiza la solicitud POST para crear la llamada
+                            response = requests.post(api_url, headers=headers, json=call_payload)
+
+                            if response and response.status_code == 201:
+                                # Incrementar el contador de envíos y actualizar la fecha del último envío
+                                alert.increase_sent_count()
+                                success_count += 1
+                            else:
+                                print(f"Error al enviar la llamada a {recipient}: {response.text}")
+                                error_count += 1
+
+                        except Exception as e:
+                            print(f"Error al enviar la llamada a {recipient}: {str(e)}")
+                            error_count += 1
+
+                    else:
+                        print("Número de teléfono no válido:", recipient)
+
+                print(f"Llamadas enviadas exitosamente: {success_count}")
+                print(f"Errores en el envío de llamadas: {error_count}")
+
+            except PhoneAlert.DoesNotExist:
+                print(f"La alerta de llamada con ID {alert_id} no existe en la base de datos.")
+
+        return redirect('phone_alerts')
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'})
+
