@@ -97,7 +97,15 @@ urlpatterns = [
     path('send_scheduled_messages_facebook/', views.send_scheduled_messages_facebook, name='send_scheduled_messages_facebook'),
     path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails'),
     path('alerts/whatsapp/list/', views.whatsapp_alerts, name='whatsapp_alerts'),
+    path('alerts/whatsapp/order_whatsapp_alerts_by_created/', views.order_whatsapp_alerts_by_created, name='order_whatsapp_alerts_by_created'),
+    path('alerts/whatsapp/order_whatsapp_alerts_by_last_sent/', views.order_whatsapp_alerts_by_last_sent, name='order_whatsapp_alerts_by_last_sent'),
+    path('alerts/mail/list/', views.mail_alerts, name='mail_alerts'),
+    path('alerts/phone/list/', views.phone_alerts, name='phone_alerts'),
+    path('alerts/phone/order_phone_alerts_by_last_sent/', views.order_phone_alerts_by_last_sent, name='order_phone_alerts_by_last_sent'),
+    path('alerts/phone/order_phone_alerts_by_created/', views.order_phone_alerts_by_created, name='order_phone_alerts_by_created'),
     path('alerts/whatsapp/<int:alert_id>/', views.alert_detail_whatsapp, name='alert_detail_whatsapp'),
+    #path('alerts/mail/<int:alert_id>/', views.alert_detail_mail, name='alert_detail_mail'),
+    #path('alerts/phone/<int:alert_id>/', views.alert_detail_phone, name='alert_detail_phone'),
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
     path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
@@ -110,5 +118,10 @@ urlpatterns = [
     path('send_scheduled_emails/', views.send_scheduled_emails, name='send_scheduled_emails'),
     path('send_scheduled_phone_calls/', views.send_scheduled_phone_calls, name='send_scheduled_phone_calls'),
     path('send_whatsapp_alerts/', views.send_whatsapp_alerts, name='send_whatsapp_alerts'),
-    path('update_whatsapp_alert/<int:alert_id>/', views.update_whatsapp_alert, name='update_whatsapp_alert')
+    path('send_mail_alerts/', views.send_mail_alerts, name='send_mail_alerts'),
+    path('send_phone_alerts/', views.send_phone_alerts, name='send_phone_alerts'),
+    path('update_whatsapp_alert/<int:alert_id>/', views.update_whatsapp_alert, name='update_whatsapp_alert'),
+    path('update_mail_alert/<int:alert_id>/', views.update_mail_alert, name='update_mail_alert'),
+    path('update_phone_alert/<int:alert_id>/', views.update_phone_alert, name='update_phone_alert')
+    
 ]
