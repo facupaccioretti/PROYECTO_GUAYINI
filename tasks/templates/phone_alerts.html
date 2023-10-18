@@ -4,7 +4,7 @@
     <div class="col-md-8">
       <div class="card card-body mt-3">
         <h4 class="font-weight-bold py-3 mb-4 text-center">
-          Alertas de WhatsApp programadas
+          Alertas de Llamadas programadas
         </h4>
         <div class="row">
           <div class="col-md-12">
@@ -48,7 +48,7 @@
                         class="modal-title"
                         id="alertModalLabel{{ alert.id }}"
                       >
-                        Detalles de la Alerta
+                        Detalles de la Alerta de Llamada
                       </h5>
                       <button
                         type="button"
@@ -62,7 +62,7 @@
                     <div class="modal-body">
                       <!-- Campos editables -->
                       <form
-                        action="{% url 'update_whatsapp_alert' alert.id %}"
+                        action="{% url 'update_phone_alert' alert.id %}"
                         method="POST"
                       >
                         {% csrf_token %}
@@ -106,15 +106,15 @@
                           >
                         </div>
                         <div class="form-group">
-                          <label for="id_to">Para:</label>
-                          <input
-                            type="text"
+                          <label for="to{{ alert.id }}">Destinatario(s):</label>
+                          <textarea
                             class="form-control form-control-sm"
-                            id="id_to"
+                            id="to{{ alert.id }}"
                             name="to"
-                            value="{{ alert.to }}"
-                            placeholder="Ingrese los números a los cuales enviar las alertas"
-                          />
+                            placeholder="Ingrese el destinatario(s)"
+                          >
+{{ alert.to }}</textarea
+                          >
                         </div>
                         <div class="form-group">
                           <label for="id_groups">Seleccionar Grupos:</label>
@@ -149,7 +149,7 @@
                           </button>
                         </div>
                         <button type="submit" class="btn btn-primary">
-                          Actualizar Alerta
+                          Actualizar Alerta de Llamada
                         </button>
                       </form>
 
@@ -163,7 +163,7 @@
                     <div class="modal-footer">
                       <!-- Formulario para enviar la alerta -->
                       <form
-                        action="{% url 'send_whatsapp_alerts' %}"
+                        action="{% url 'send_phone_alerts' %}"
                         method="POST"
                       >
                         {% csrf_token %}
@@ -180,7 +180,7 @@
                           Cerrar
                         </button>
                         <button type="submit" class="btn btn-primary">
-                          Enviar Alerta
+                          Enviar Alerta de Llamada
                         </button>
                       </form>
                     </div>
@@ -196,10 +196,10 @@
     <div class="col-md-4">
       <div class="card card-body mt-3">
         <h4 class="text-center display-7 py-2 text-dark">
-          Crear nueva alerta de WhatsApp
+          Crear nueva Alerta de Llamada
         </h4>
         <form
-          action="{% url 'whatsapp_alerts' %}"
+          action="{% url 'phone_alerts' %}"
           method="POST"
           enctype="multipart/form-data"
           name="create-alert-form"
@@ -236,14 +236,13 @@
             ></textarea>
           </div>
           <div class="form-group">
-            <label for="id_to">Para:</label>
-            <input
-              type="text"
+            <label for="to">Destinatario(s):</label>
+            <textarea
               class="form-control form-control-sm"
-              id="id_to"
+              id="to"
               name="to"
-              placeholder="Ingrese los números a los cuales enviar las alertas"
-            />
+              placeholder="Ingrese el destinatario(s)"
+            ></textarea>
           </div>
           <label for="id_groups">Seleccionar Grupos:</label>
           <div id="group-selection-container">
@@ -259,7 +258,9 @@
           <button type="button" id="add-group-button" class="btn btn-primary">
             Agregar Grupo
           </button>
-          <button type="submit" class="btn btn-primary">Crear Alerta</button>
+          <button type="submit" class="btn btn-primary">
+            Crear Alerta de Llamada
+          </button>
         </form>
       </div>
     </div>
@@ -270,7 +271,7 @@
     // Manejar el clic en el botón "Enviar Alerta" en el modal de actualización
     $(".send-alert-button").click(function () {
       var alertId = $(this).data("alert-id");
-      // ... Agrega aquí tu lógica para enviar alertas ...
+      // ... Agrega aquí tu lógica para enviar alertas de llamadas ...
     });
 
     // Manejar el evento clic en el botón "Agregar Grupo" en el formulario de creación
@@ -306,40 +307,34 @@
     });
   });
   $(document).ready(function () {
-    // Manejar el clic en el botón "Ordenar por Fecha de Creación"
+    // Manejar el clic en el botón "Ordenar por fecha de creación"
     $("#order-by-created").click(function () {
-      $.ajax({
-        url: "{% url 'order_whatsapp_alerts_by_created' %}",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-          if (data.data) {
-            // Actualizar la lista de alertas con los datos ordenados
-            $(".list-group").html(data.data);
-          }
-        },
-        error: function () {
-          console.log("Error al ordenar por fecha de creación.");
-        },
-      });
+        $.ajax({
+            url: "{% url 'order_phone_alerts_by_created' %}",
+            type: "GET",
+            success: function (data) {
+                // Reemplazar el contenido de la lista con los datos ordenados
+                $(".list-group").html(data);
+            },
+            error: function (error) {
+                console.log("Error al ordenar por fecha de creación:", error);
+            }
+        });
     });
 
-    // Manejar el clic en el botón "Ordenar por Última Fecha de Envío"
+    // Manejar el clic en el botón "Ordenar por última fecha de uso"
     $("#order-by-last-sent").click(function () {
-      $.ajax({
-        url: "{% url 'order_whatsapp_alerts_by_last_sent' %}",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-          if (data.data) {
-            // Actualizar la lista de alertas con los datos ordenados
-            $(".list-group").html(data.data);
-          }
-        },
-        error: function () {
-          console.log("Error al ordenar por última fecha de envío.");
-        },
-      });
+        $.ajax({
+            url: "{% url 'order_phone_alerts_by_last_sent' %}",
+            type: "GET",
+            success: function (data) {
+                // Reemplazar el contenido de la lista con los datos ordenados
+                $(".list-group").html(data);
+            },
+            error: function (error) {
+                console.log("Error al ordenar por última fecha de uso:", error);
+            }
+        });
     });
 </script>
 

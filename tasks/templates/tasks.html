@@ -10,7 +10,7 @@
         <div class="row">
           <div class="col-md-12">
             <h5 class="text-center">Notificaciones pendientes</h5>
-            <ul class="list-group">
+            <ul class="list-group" style="max-height: 300px; overflow-y: auto;">
               {% for task in pending_tasks %}
               <a class="list-group-item" href="{% url 'task_detail' task.id %}">
                 <header class="d-flex justify-content-between">
@@ -31,7 +31,7 @@
           </div>
           <div class="col-md-12 mt-3">
             <h5 class="text-center">Notificaciones completadas</h5>
-            <ul class="list-group">
+            <ul class="list-group" style="max-height: 300px; overflow-y: auto;">
               {% for task in completed_tasks %}
               <a class="list-group-item" href="{% url 'task_detail' task.id %}">
                 <header class="d-flex justify-content-between">

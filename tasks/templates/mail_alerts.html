@@ -1,23 +1,17 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
+
+{% block content %}
 <main class="container">
   <div class="row">
     <div class="col-md-8">
       <div class="card card-body mt-3">
         <h4 class="font-weight-bold py-3 mb-4 text-center">
-          Alertas de WhatsApp programadas
+          Alertas de Correo Electrónico programadas
         </h4>
         <div class="row">
           <div class="col-md-12">
             <h5 class="text-center">Alertas creadas</h5>
-            <div class="d-flex justify-content-between">
-              <button id="order-by-created" class="btn btn-link">
-                Ordenar por fecha de creación
-              </button>
-              <button id="order-by-last-sent" class="btn btn-link">
-                Ordenar por última fecha de uso
-              </button>
-            </div>
-            <ul class="list-group" style="max-height: 300px; overflow-y: auto">
+            <ul class="list-group" style="max-height: 300px; overflow-y: auto;">
               {% for alert in alerts %}
               <a
                 class="list-group-item"
@@ -48,7 +42,7 @@
                         class="modal-title"
                         id="alertModalLabel{{ alert.id }}"
                       >
-                        Detalles de la Alerta
+                        Detalles de la Alerta de Correo Electrónico
                       </h5>
                       <button
                         type="button"
@@ -62,7 +56,7 @@
                     <div class="modal-body">
                       <!-- Campos editables -->
                       <form
-                        action="{% url 'update_whatsapp_alert' alert.id %}"
+                        action="{% url 'update_mail_alert' alert.id %}"
                         method="POST"
                       >
                         {% csrf_token %}
@@ -72,9 +66,7 @@
                           value="{{ alert.id }}"
                         />
                         <div class="form-group">
-                          <label for="edit_tittle{{ alert.id }}"
-                            >Título de la Alerta</label
-                          >
+                          <label for="edit_tittle{{ alert.id }}">Título de la Alerta</label>
                           <input
                             type="text"
                             class="form-control"
@@ -84,16 +76,12 @@
                           />
                         </div>
                         <div class="form-group">
-                          <label for="edit_description{{ alert.id }}"
-                            >Descripción:</label
-                          >
+                          <label for="edit_description{{ alert.id }}">Descripción:</label>
                           <textarea
                             class="form-control"
                             id="edit_description{{ alert.id }}"
                             name="description"
-                          >
-{{ alert.description }}</textarea
-                          >
+                          >{{ alert.description }}</textarea>
                         </div>
                         <div class="form-group">
                           <label for="edit_body{{ alert.id }}">Mensaje:</label>
@@ -101,19 +89,17 @@
                             class="form-control"
                             id="edit_body{{ alert.id }}"
                             name="body"
-                          >
-{{ alert.body }}</textarea
-                          >
+                          >{{ alert.body }}</textarea>
                         </div>
                         <div class="form-group">
-                          <label for="id_to">Para:</label>
+                          <label for="address{{ alert.id }}">Dirección de Correo Electrónico:</label>
                           <input
-                            type="text"
+                            type="email"
                             class="form-control form-control-sm"
-                            id="id_to"
-                            name="to"
-                            value="{{ alert.to }}"
-                            placeholder="Ingrese los números a los cuales enviar las alertas"
+                            id="address{{ alert.id }}"
+                            name="address"
+                            value="{{ alert.address }}"
+                            placeholder="Ingrese la dirección de correo"
                           />
                         </div>
                         <div class="form-group">
@@ -149,7 +135,7 @@
                           </button>
                         </div>
                         <button type="submit" class="btn btn-primary">
-                          Actualizar Alerta
+                          Actualizar Alerta de Correo Electrónico
                         </button>
                       </form>
 
@@ -163,7 +149,7 @@
                     <div class="modal-footer">
                       <!-- Formulario para enviar la alerta -->
                       <form
-                        action="{% url 'send_whatsapp_alerts' %}"
+                        action="{% url 'send_mail_alerts' %}"
                         method="POST"
                       >
                         {% csrf_token %}
@@ -180,7 +166,7 @@
                           Cerrar
                         </button>
                         <button type="submit" class="btn btn-primary">
-                          Enviar Alerta
+                          Enviar Alerta de Correo Electrónico
                         </button>
                       </form>
                     </div>
@@ -196,10 +182,10 @@
     <div class="col-md-4">
       <div class="card card-body mt-3">
         <h4 class="text-center display-7 py-2 text-dark">
-          Crear nueva alerta de WhatsApp
+          Crear nueva Alerta de Correo Electrónico
         </h4>
         <form
-          action="{% url 'whatsapp_alerts' %}"
+          action="{% url 'mail_alerts' %}"
           method="POST"
           enctype="multipart/form-data"
           name="create-alert-form"
@@ -236,13 +222,13 @@
             ></textarea>
           </div>
           <div class="form-group">
-            <label for="id_to">Para:</label>
+            <label for="address">Dirección de Correo Electrónico:</label>
             <input
-              type="text"
+              type="email"
               class="form-control form-control-sm"
-              id="id_to"
-              name="to"
-              placeholder="Ingrese los números a los cuales enviar las alertas"
+              id="address"
+              name="address"
+              placeholder="Ingrese la dirección de correo"
             />
           </div>
           <label for="id_groups">Seleccionar Grupos:</label>
@@ -259,7 +245,7 @@
           <button type="button" id="add-group-button" class="btn btn-primary">
             Agregar Grupo
           </button>
-          <button type="submit" class="btn btn-primary">Crear Alerta</button>
+          <button type="submit" class="btn btn-primary">Crear Alerta de Correo Electrónico</button>
         </form>
       </div>
     </div>
@@ -270,7 +256,7 @@
     // Manejar el clic en el botón "Enviar Alerta" en el modal de actualización
     $(".send-alert-button").click(function () {
       var alertId = $(this).data("alert-id");
-      // ... Agrega aquí tu lógica para enviar alertas ...
+      // ... Agrega aquí tu lógica para enviar alertas de correo electrónico ...
     });
 
     // Manejar el evento clic en el botón "Agregar Grupo" en el formulario de creación
@@ -305,42 +291,6 @@
       $("#group-selection-container-modal").append(groupSelectHtml);
     });
   });
-  $(document).ready(function () {
-    // Manejar el clic en el botón "Ordenar por Fecha de Creación"
-    $("#order-by-created").click(function () {
-      $.ajax({
-        url: "{% url 'order_whatsapp_alerts_by_created' %}",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-          if (data.data) {
-            // Actualizar la lista de alertas con los datos ordenados
-            $(".list-group").html(data.data);
-          }
-        },
-        error: function () {
-          console.log("Error al ordenar por fecha de creación.");
-        },
-      });
-    });
-
-    // Manejar el clic en el botón "Ordenar por Última Fecha de Envío"
-    $("#order-by-last-sent").click(function () {
-      $.ajax({
-        url: "{% url 'order_whatsapp_alerts_by_last_sent' %}",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-          if (data.data) {
-            // Actualizar la lista de alertas con los datos ordenados
-            $(".list-group").html(data.data);
-          }
-        },
-        error: function () {
-          console.log("Error al ordenar por última fecha de envío.");
-        },
-      });
-    });
 </script>
 
 {% endblock %}
