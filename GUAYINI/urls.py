@@ -109,6 +109,7 @@ urlpatterns = [
     path('alerts/create/', views.create_alert, name='create_alert'),
     path('alerts/<int:alert_id>/complete/', views.complete_alert, name='complete_alert'),
     path('alerts/<int:alert_id>/delete/', views.delete_alert, name='delete_alert'),
+
         #BOTFLOW
     path('bot_flow/', views.bot_flow, name='bot_flow'),
     path('bot_flow/delete_bot/<int:bot_id>/', views.delete_bot, name='delete_bot'),
@@ -122,6 +123,11 @@ urlpatterns = [
     path('send_phone_alerts/', views.send_phone_alerts, name='send_phone_alerts'),
     path('update_whatsapp_alert/<int:alert_id>/', views.update_whatsapp_alert, name='update_whatsapp_alert'),
     path('update_mail_alert/<int:alert_id>/', views.update_mail_alert, name='update_mail_alert'),
-    path('update_phone_alert/<int:alert_id>/', views.update_phone_alert, name='update_phone_alert')
+    path('update_phone_alert/<int:alert_id>/', views.update_phone_alert, name='update_phone_alert'),
+
+    path('send_whatsapp/<str:number>/<str:message>/', views.send_whatsapp, name='send_whatsapp'),
+    path('receive_whatsapp/', views.receive_whatsapp, name='receive_whatsapp'),
+    path('get_messages/<str:contact_number>/', views.get_messages, name='get_messages')
+
     
 ]
