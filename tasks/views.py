@@ -721,7 +721,7 @@ def send_scheduled_messages_twilio(request):
     print("ejecutando cronjob")
 
     # Obtener la fecha y hora actual en la zona horaria deseada
-    now = timezone.now().astimezone(tz)
+    now = datetime.now(tz)
 
     # Obtiene todas las tareas programadas que aún no se han completado
     tasks = Task.objects.filter(user=request.user, dateprogramed__lte=timezone.now(), datecompleted=None)
@@ -1796,7 +1796,7 @@ def send_scheduled_messages_facebook(request):
 
         # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
         tz = pytz.timezone("America/Argentina/Cordoba")
-        now = timezone.now().astimezone(tz)
+        now = datetime.now(tz)
 
         # URL y encabezados de la solicitud a la API de Facebook
         url = f'https://graph.facebook.com/v17.0/{settings.FACEBOOK_SENDER_NUMBER_1}/messages'
@@ -2380,7 +2380,7 @@ def send_scheduled_phone_calls(request):
 
         # Obtener la zona horaria deseada, en este caso "America/Argentina/Cordoba"
         tz = pytz.timezone("America/Argentina/Cordoba")
-        now = timezone.now().astimezone(tz)
+        now = datetime.now(tz)
 
         client = messagebird.Client(settings.MESSAGEBIRD_ACCESS_KEY)  # Reemplaza 'YOUR_ACCESS_KEY' con tu propia clave de acceso de MessageBird
         success_count = 0
