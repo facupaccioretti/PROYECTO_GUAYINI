@@ -308,7 +308,7 @@ def mails(request):
     # Obtener la zona horaria de Argentina
     tz = pytz.timezone("America/Argentina/Cordoba")
     # Obtener la fecha y hora actual en la zona horaria especificada
-    now = timezone.now().astimezone(tz)
+    now = datetime.now(tz)
     
     # Filtrar correos que aún no han sido enviados y tienen fecha programada igual o posterior a hoy
     mails = Mail.objects.filter(user=request.user, dateprogramed__gte=now).order_by('-created')
@@ -366,7 +366,7 @@ def mails_completed(request):
     # Obtener la zona horaria de Argentina
     tz = pytz.timezone("America/Argentina/Cordoba")
     # Obtener la fecha y hora actual en la zona horaria especificada
-    now = timezone.now().astimezone(tz)
+    now = datetime.now(tz)
     
     # Filtrar correos cuya fecha programada es anterior al día de hoy y han sido completados
     mails = Mail.objects.filter(user=request.user, dateprogramed__lt=now).order_by('-created')
